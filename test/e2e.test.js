@@ -81,7 +81,7 @@ try {
   ok('sign-up validates input and rejects taken usernames');
 
   await tick(200);
-  const raw = fs.readFileSync(path.join(dataDir, 'wallet-paya.json'), 'utf8');
+  const raw = fs.readFileSync(path.join(dataDir, 'state.json'), 'utf8');
   assert.ok(!raw.includes(PASSWORD), 'plain password must not be stored');
   assert.ok(raw.includes('scrypt$'));
   ok('passwords stored only as scrypt hashes');

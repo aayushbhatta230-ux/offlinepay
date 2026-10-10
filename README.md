@@ -6,12 +6,28 @@ wallets keep their ledgers, and we tell them what to debit and credit.
 
 **PayA** and **PayB** in this repo are mock wallets used to demonstrate the integration.
 
-## Run it
+## Android app (no laptop needed)
+
+Download **OfflinePay-Wallet.apk** from the newest numbered release under **Releases** and install it.
+The app runs the whole backend **on the phone** (standalone mode): pick **PayA** or **PayB**, create an
+account and use it. The phones only exchange QR codes.
+
+- Each phone keeps its own accounts and its own copy of the OfflinePay engine.
+- Phones trust each other's device certificates through a demo issuer key built into the app.
+- Each phone settles its own side when it's back online. The merchant's phone catches a customer who pays it twice with the same money, and the customer's phone catches its own rolled-back vault and freezes the account.
+- Limit: a double-spend split across two *different* merchants' phones is only caught by a central server. That's what the real product (server mode) is for.
+
+The Android app also has an advanced **server mode** (setup screen → "Advanced"), where phones connect to `npm start` on a laptop and share one backend and the live dashboard.
+
+Build the APK locally (needs JDK 21 + Android SDK): `npm run build:android`, then `cd android && ./gradlew assembleDebug`.
+GitHub Actions builds it on every push; pushing a tag like `v2.1` publishes a numbered release.
+
+## Run the laptop server (optional)
 
 ```bash
 npm install
 npm start          # http://localhost:3000
-npm test           # end-to-end test of the whole protocol
+npm test           # server end-to-end test + two-phone standalone test
 ```
 
 | URL | What |
@@ -20,17 +36,6 @@ npm test           # end-to-end test of the whole protocol
 | `/paya/` | PayA wallet app |
 | `/payb/` | PayB wallet app |
 | `/dashboard/` | OfflinePay partner console (put it on the projector) |
-
-### Android app (APK)
-Every push to `main` builds an APK with GitHub Actions. Download `OfflinePay-Wallet.apk` from the
-repo's **Releases → latest** and install it (allow "install unknown apps").
-
-1. On the laptop: `npm start`. It prints the **server address for the Android app**, e.g. `http://192.168.1.10:3000`.
-2. Connect the phones to the same Wi-Fi or hotspot as the laptop.
-3. Open the app, enter that address, and pick **PayA** or **PayB** for this phone (⚙ on the account screen changes it later).
-4. Then use airplane mode (or the Online pill) for the offline part. Turn the network back on to settle.
-
-Build it locally instead (needs JDK 21 + Android SDK): `npm run build:android`, then `cd android && ./gradlew assembleDebug`.
 
 ### Phone browsers (no APK)
 Phone browsers only allow the camera and offline mode over **HTTPS**. Expose the laptop with a tunnel:
@@ -49,16 +54,17 @@ scanner accepts pasted codes.
 Wallet app ── embeds ── OfflinePay SDK (sdk/offlinepay-sdk.js)
                          keys · vault · sign/verify · QR · sync
       │ online only
-Wallet backend ── partner key ──► OfflinePay API (server/offlinepay-api.js)
+Wallet backend ── partner key ──► OfflinePay API (core/engine.js)
       ▲                            issuer · settlement · fraud engine
       └────────── webhooks ───────┘
 ```
 
 - `sdk/protocol.js` — shared crypto (ECDSA P-256 via WebCrypto, canonical JSON, token checks). Same code runs on phone and server.
 - `sdk/offlinepay-sdk.js` — what a wallet embeds. Non-extractable device key, vault (balance, counter, hash chain), outbox sync.
-- `server/offlinepay-api.js` — our product's API.
-- `server/wallets.js` — mock PayA/PayB backends (ledger, KYC'd accounts, webhook handlers).
-- `apps/wallet/` — wallet PWA (works offline via service worker). `apps/dashboard/` — partner console.
+- `core/engine.js` — the backend: our OfflinePay API (issuer, settlement, fraud engine) plus the mock PayA/PayB wallets (accounts, ledgers, webhook handlers). It uses no Node-specific code, so it runs on the laptop server **and** inside the phone app.
+- `server/index.js` — optional HTTP server around the engine, plus the web apps and dashboard.
+- `apps/wallet/` — the wallet app (also packaged as the APK). `local-backend.js` runs the engine on the phone in standalone mode.
+- `apps/dashboard/` — partner console for server mode. In the app: **Profile → OfflinePay console**.
 
 ### How a payment works
 1. **Enable (online):** the device generates a key pair; the private key never leaves it. The wallet backend registers the public key → OfflinePay returns a signed **device certificate**.
@@ -96,28 +102,29 @@ const result = await op.receive(paymentQR);    // payee, offline
 There are no built-in users. Each person creates an account in the app (**Create account**): full name,
 username, password (8+ characters) and type (personal or merchant). New accounts get Rs 5,000 of demo money.
 
-- Passwords are stored as salted **scrypt** hashes; sessions are random tokens (only their hash is stored), valid 30 days.
+- Passwords are stored as salted hashes (**PBKDF2** on the phone, **scrypt** on the laptop server); sessions are random tokens (only their hash is stored), valid 30 days.
 - Every wallet API acts on the signed-in user only, so a phone can only register and load Offline Pay for its own account.
 - 5 wrong passwords lock that username for 1 minute.
-- Once signed in, the app opens and pays offline; signing in itself needs a connection.
+- In standalone mode, accounts live on that phone and signing in works offline. In server mode, signing in needs a connection.
 
 ## Demo script (≈3 min, two phones)
 
 Suggested setup: phone 1 = **customer** account on PayA, phone 2 = **merchant** account on PayB (cross-wallet payment).
 
-1. Dashboard on the projector. Both phones: Offline Pay → Enable. Customer: load Rs 1,000.
+1. Both phones: **Offline Pay** tab → Set up. Customer: load Rs 1,000. (Server mode: put the dashboard on the projector.)
 2. **Airplane mode on both** (or tap the Online pill to simulate offline).
 3. Customer: open *Demo: attack tools* → **Save vault snapshot**.
-4. Merchant: Receive → Rs 200 → shows QR. Customer: Pay → scan → Approve → shows QR. Merchant: Scan payer's code → ✅ *Signature verified*.
+4. Merchant: **Receive** → Rs 200 → shows QR. Customer: **Scan** (middle button) → Confirm & pay → shows QR. Merchant: *Scan customer's code* → ✅ *Payment verified*.
 5. **Tamper:** customer turns on "Tamper with next payment" and pays a new request → merchant scan → ❌ *Invalid signature*.
 6. **Double-spend:** customer → **Roll back vault** (Rs 1,000 is back). Merchant makes a new Rs 900 request, customer pays, merchant verifies → ✅ (looks valid offline — this is the honest risk).
-7. **Back online:** the merchant reconnects → dashboard: ✅ Rs 200 settled, PayA owes PayB Rs 200, and 🚩 the Rs 900 double-spend is blocked; the customer's device and account are frozen.
+7. **Back online:** the merchant's phone settles ✅ Rs 200 and blocks 🚩 the Rs 900 double-spend. When the customer's phone reconnects, its account is frozen. Show it in **Profile → OfflinePay console**.
 
-Reset between rehearsals: **Reset demo** on the dashboard (keeps accounts and passwords, restores balances), then **Reset this phone** on each phone.
+Reset between rehearsals: **Profile → Erase all data on this phone** (standalone), or **Reset demo** on the dashboard (server mode) and **Reset Offline Pay on this phone**.
 
 ## Honest limits of this demo
 - The vault is in IndexedDB and enforced in software. Production needs hardware-backed keys and counters (Android StrongBox / iOS Secure Enclave); the protocol is designed for that.
 - Double-spending is **detected and capped** (Rs 5,000 per device, KYC'd users), not prevented offline.
 - QR codes are dense (~680 chars). Turn phone brightness up when scanning.
-- Data (accounts, balances, sessions) is stored in `data/*.json` on the laptop. Delete that folder to start completely fresh.
+- Standalone mode stores everything in the app's local storage; uninstalling the app erases it. The server stores data in `data/state.json`.
+- The demo issuer key in standalone mode is built into the app, so anyone with the APK could mint certificates. In server mode the key never leaves the server.
 - The dashboard and its reset button have no login — it is meant for the presenter's laptop.

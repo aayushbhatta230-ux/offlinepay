@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const DATA_DIR = process.env.OFFLINEPAY_DATA || path.resolve(import.meta.dirname, '..', 'data');
+export const DATA_DIR = process.env.OFFLINEPAY_DATA || path.resolve(import.meta.dirname, '..', 'data');
 
 export function createStore(name, initial) {
   const file = path.join(DATA_DIR, `${name}.json`);

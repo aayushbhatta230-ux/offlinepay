@@ -39,10 +39,12 @@ function idb(db, store, mode, fn) {
 }
 
 export class OfflinePay {
-  constructor({ partner, account, apiBase = '', registerDevice, requestLoad, onChange }) {
+  // `transport(path, body)` replaces HTTP when the OfflinePay backend runs in-process (standalone demo mode).
+  constructor({ partner, account, apiBase = '', transport, registerDevice, requestLoad, onChange }) {
     this.partner = partner;
     this.account = account;
     this.apiBase = apiBase;
+    this.transport = transport;
     this.registerDevice = registerDevice;
     this.requestLoad = requestLoad;
     this.onChange = onChange || (() => {});
@@ -68,6 +70,7 @@ export class OfflinePay {
 
   async _api(path, body) {
     if (!this.isOnline()) throw new Error('No internet connection');
+    if (this.transport) return this.transport(path, body);
     const res = await fetch(this.apiBase + path, {
       method: body ? 'POST' : 'GET',
       headers: body ? { 'Content-Type': 'application/json' } : {},

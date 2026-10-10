@@ -98,11 +98,7 @@ function render(s, ledgers) {
 
 document.getElementById('reset').onclick = async () => {
   if (!confirm('Reset all demo data? (Also tap "Reset this phone" on each phone.)')) return;
-  await Promise.all([
-    fetch('/v1/admin/reset', { method: 'POST' }),
-    fetch('/paya/api/reset', { method: 'POST' }),
-    fetch('/payb/api/reset', { method: 'POST' }),
-  ]);
+  await fetch('/v1/admin/reset', { method: 'POST' });
   load();
 };
 

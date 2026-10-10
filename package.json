@@ -4,8 +4,8 @@
   "description": "Offline payment SDK + API demo",
   "scripts": {
     "start": "node server/index.js",
-    "test": "node test/e2e.test.js",
-    "build:www": "node scripts/build-www.js",
+    "test": "node test/e2e.test.js && node test/standalone.test.js",
+    "build:www": "node scripts/build-icons.js && node scripts/build-www.js",
     "build:android": "node scripts/build-www.js && npx cap sync android"
   },
   "keywords": [],
@@ -20,6 +20,7 @@
     "qrcode-generator": "^1.4.4"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.6.9"
+    "@capacitor/cli": "^7.6.9",
+    "lucide-static": "^0.577.0"
   }
 }

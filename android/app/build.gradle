@@ -7,8 +7,8 @@ android {
         applicationId "com.offlinepay.demo"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,7 +16,21 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Fixed demo signing key, so each new APK installs as an update over the previous one.
+    // DEMO ONLY — a Play Store release must use a private key that is never committed.
+    signingConfigs {
+        demo {
+            storeFile file('../demo-signing.p12')
+            storeType 'pkcs12'
+            storePassword 'offlinepay-demo'
+            keyAlias 'offlinepay'
+            keyPassword 'offlinepay-demo'
+        }
+    }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.demo
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

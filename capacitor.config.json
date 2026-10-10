@@ -2,11 +2,13 @@
   "appId": "com.offlinepay.demo",
   "appName": "OfflinePay Wallet",
   "webDir": "www",
+  "backgroundColor": "#2B7A2B",
   "server": {
     "androidScheme": "https",
     "cleartext": true
   },
   "android": {
-    "allowMixedContent": true
+    "allowMixedContent": true,
+    "adjustMarginsForEdgeToEdge": "auto"
   }
 }

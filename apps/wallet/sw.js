@@ -1,8 +1,8 @@
 // Caches the app shell so the wallet opens in airplane mode.
 // Network-first (so updates show during development), cache as fallback.
-const CACHE = 'opay-shell-v1-' + self.registration.scope;
+const CACHE = 'opay-shell-v2-' + self.registration.scope;
 const SHELL = [
-  './', 'index.html', 'app.js', 'styles.css', 'manifest.webmanifest',
+  './', 'index.html', 'app.js', 'icons.js', 'styles.css', 'manifest.webmanifest',
   '/sdk/offlinepay-sdk.js', '/sdk/protocol.js', '/vendor/qrcode.js', '/vendor/jsQR.js',
 ];
 
