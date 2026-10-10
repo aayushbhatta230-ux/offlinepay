@@ -312,6 +312,11 @@ const topBar = (title, { backBtn = true, right = '' } = {}) => `
     ${right || netPill()}
   </header>`;
 
+// iPhone web version opened in a Safari tab: suggest the home-screen app (it has its own, separate storage).
+const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const installHint = () => (IOS && NATIVE && !window.OPAY_APK && !navigator.standalone)
+  ? `<div class="notice warn slim">${icon('circle-help', 18)}<div><b>Install it first</b><span>Tap <b>Share</b> → <b>Add to Home Screen</b>, then open OfflinePay from the new icon. Accounts made in a Safari tab don't carry over to the home-screen app.</span></div></div>` : '';
+
 const frozen = () => !!(S.me?.frozen || S.opState.frozen);
 const frozenBanner = () => frozen()
   ? `<div class="notice bad">${icon('shield-alert', 20)}<div><b>Account frozen</b><span>A fraud alert was raised on Offline Pay. Contact ${BRAND.name} support.</span></div></div>` : '';
@@ -371,6 +376,7 @@ const views = {
           <p>Digital wallets that keep working without internet.</p>
         </div>
         <form class="card pad" data-form="setup">
+          ${installHint()}
           <h2 class="card-title">Which wallet app is this phone?</h2>
           <p class="muted small">Use one on each phone to show a payment between two different wallets.</p>
           <div class="wallet-pick">
@@ -398,6 +404,7 @@ const views = {
           <p>${signup ? 'Create your wallet account' : 'Welcome back'}</p>
         </div>
         <div class="card pad auth-card">
+          ${installHint()}
           <div class="seg">
             <button class="${signup ? '' : 'on'}" data-action="authMode" data-mode="login">Sign in</button>
             <button class="${signup ? 'on' : ''}" data-action="authMode" data-mode="signup">Create account</button>
@@ -1016,7 +1023,8 @@ setInterval(async () => {
 // ---------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------
-if (!NATIVE && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+// The APK bundles its files; the browser and iPhone web versions need the offline cache.
+if (!window.OPAY_APK && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 if (S.account) {
   S.me = store.get(`${S.account}:me`);
   setupSdk();

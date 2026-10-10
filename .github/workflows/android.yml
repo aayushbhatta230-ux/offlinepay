@@ -60,3 +60,33 @@ jobs:
           gh release create latest OfflinePay-Wallet.apk --prerelease \
             --title "OfflinePay Wallet (latest build)" \
             --notes "Development build from ${{ github.sha }}. For the stable version, use the newest numbered release."
+
+  # Web version (iPhone and any phone browser), published to GitHub Pages from main.
+  pages:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:web
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

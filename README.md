@@ -22,6 +22,17 @@ The Android app also has an advanced **server mode** (setup screen → "Advanced
 Build the APK locally (needs JDK 21 + Android SDK): `npm run build:android`, then `cd android && ./gradlew assembleDebug`.
 GitHub Actions builds it on every push; pushing a tag like `v2.1` publishes a numbered release.
 
+## iPhone (and any phone browser)
+
+Open **https://aayushbhatta230-ux.github.io/offlinepay/** in Safari, tap **Share → Add to Home Screen**, then
+open **OfflinePay** from the new icon. It's the same standalone app as the APK: everything runs on the
+phone, and after the first visit it opens in airplane mode.
+
+- Create your account **inside the home-screen app**. Safari tabs and home-screen apps keep separate storage.
+- Allow camera access when you scan for the first time.
+- The site is rebuilt and published by GitHub Actions on every push to `main` (`npm run build:web` builds it locally into `site/`).
+- An iPhone and an Android phone can pay each other: they only exchange QR codes.
+
 ## Run the laptop server (optional)
 
 ```bash

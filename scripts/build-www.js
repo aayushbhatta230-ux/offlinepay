@@ -18,7 +18,7 @@ copy('node_modules/jsqr/dist/jsQR.js', 'vendor/jsQR.js');
 
 const html = fs.readFileSync(path.join(root, 'apps', 'wallet', 'index.html'), 'utf8')
   .replace('<link rel="manifest" href="manifest.webmanifest">\n', '')
-  .replace('<script src="/vendor/qrcode.js">', '<script>window.OPAY_NATIVE = true;</script>\n  <script src="/vendor/qrcode.js">');
+  .replace('<script src="/vendor/qrcode.js">', '<script>window.OPAY_NATIVE = true; window.OPAY_APK = true;</script>\n  <script src="/vendor/qrcode.js">');
 fs.writeFileSync(path.join(out, 'index.html'), html);
 
 console.log('Built www/ for the Android app');
