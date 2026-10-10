@@ -1,0 +1,12 @@
+{
+  "appId": "com.offlinepay.demo",
+  "appName": "OfflinePay Wallet",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

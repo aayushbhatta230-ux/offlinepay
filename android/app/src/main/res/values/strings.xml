@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OfflinePay Wallet</string>
+    <string name="title_activity_main">OfflinePay Wallet</string>
+    <string name="package_name">com.offlinepay.demo</string>
+    <string name="custom_url_scheme">com.offlinepay.demo</string>
+</resources>

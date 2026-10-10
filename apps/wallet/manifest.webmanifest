@@ -1,0 +1,9 @@
+{
+  "name": "Demo Wallet with Offline Pay",
+  "short_name": "Wallet",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f3f8",
+  "theme_color": "#5b3fd6"
+}

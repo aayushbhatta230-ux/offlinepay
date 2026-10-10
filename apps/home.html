@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OfflinePay Demo</title>
+  <style>
+    :root { --bg: #f4f3f8; --card: #fff; --ink: #1b1a22; --muted: #6b6878; --line: #e6e4ee; color-scheme: light; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #121118; --card: #1d1b26; --ink: #f1f0f6; --muted: #a29fb3; --line: #2e2b3b; color-scheme: dark; } }
+    :root[data-theme="dark"] { --bg: #121118; --card: #1d1b26; --ink: #f1f0f6; --muted: #a29fb3; --line: #2e2b3b; color-scheme: dark; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 640px; margin: 0 auto; padding: 32px 16px; }
+    h1 { margin: 0 0 4px; }
+    p { color: var(--muted); }
+    a.card { display: block; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin: 12px 0; color: inherit; text-decoration: none; }
+    a.card strong { font-size: 17px; }
+    a.card span { display: block; color: var(--muted); font-size: 13px; }
+    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+    ol { padding-left: 20px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>OfflinePay demo</h1>
+    <p>An offline payment SDK and API that digital wallets plug in. PayA and PayB are mock wallets.</p>
+    <a class="card" href="/paya/"><strong><span class="dot" style="background:#5b3fd6"></span>PayA wallet</strong><span>Aarav Shrestha (customer) · Sagarmatha Lodge (merchant)</span></a>
+    <a class="card" href="/payb/"><strong><span class="dot" style="background:#e0631b"></span>PayB wallet</strong><span>Himalaya Tea House (merchant) · Bina Gurung (customer)</span></a>
+    <a class="card" href="/dashboard/"><strong>OfflinePay partner console</strong><span>Live ledger, settlements, fraud alerts — put this on the projector</span></a>
+    <h3>Demo story</h3>
+    <ol>
+      <li>Aarav (PayA) enables Offline Pay and loads Rs 1,000 into the vault.</li>
+      <li>Tea House (PayB) also enables Offline Pay.</li>
+      <li>Both go offline. Tea House creates a request; Aarav scans, approves, shows his code; Tea House scans it → verified.</li>
+      <li>Attack: tamper with the amount → rejected. Snapshot → pay → roll back → pay the Lodge → looks valid offline.</li>
+      <li>Go online → the dashboard settles the real payment and catches the double-spend.</li>
+    </ol>
+  </main>
+</body>
+</html>

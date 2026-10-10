@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OfflinePay Console</title>
+  <style>
+    :root {
+      --bg: #0f1117; --card: #181b24; --ink: #eef0f6; --muted: #8f95a8; --line: #262a36;
+      --accent: #4f8cff; --ok: #3ccf7f; --warn: #f0b04a; --bad: #ff5d5d;
+      --paya: #7c5cff; --payb: #ff8a3d;
+      color-scheme: dark;
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --bg: #f3f4f8; --card: #ffffff; --ink: #161821; --muted: #646b7f; --line: #e3e5ec;
+        --ok: #138a4b; --warn: #a36100; --bad: #c42b2b; color-scheme: light;
+      }
+    }
+    :root[data-theme="light"] {
+      --bg: #f3f4f8; --card: #ffffff; --ink: #161821; --muted: #646b7f; --line: #e3e5ec;
+      --ok: #138a4b; --warn: #a36100; --bad: #c42b2b; color-scheme: light;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    header h1 { margin: 0; font-size: 18px; }
+    header h1 span { color: var(--muted); font-weight: 500; }
+    .live { display: inline-flex; align-items: center; gap: 6px; color: var(--ok); font-size: 12px; font-weight: 700; }
+    .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 50% { opacity: .3; } }
+    button { font: inherit; background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+    main { padding: 16px 20px 40px; display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+    .card h2 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .stats { grid-column: span 12; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .stat .v { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .stat .l { color: var(--muted); font-size: 12px; }
+    .stat.bad .v { color: var(--bad); }
+    .w6 { grid-column: span 6; } .w4 { grid-column: span 4; } .w8 { grid-column: span 8; } .w12 { grid-column: span 12; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; }
+    td.r, th.r { text-align: right; }
+    .tbl { overflow-x: auto; }
+    .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 999px; }
+    .tag.paya { background: color-mix(in srgb, var(--paya) 22%, transparent); color: var(--paya); }
+    .tag.payb { background: color-mix(in srgb, var(--payb) 22%, transparent); color: var(--payb); }
+    .st { font-weight: 700; font-size: 12px; }
+    .st.settled, .st.active { color: var(--ok); }
+    .st.fraud, .st.rejected, .st.frozen { color: var(--bad); }
+    .events { max-height: 420px; overflow-y: auto; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; }
+    .ev { padding: 5px 0; border-bottom: 1px solid var(--line); display: flex; gap: 10px; }
+    .ev time { color: var(--muted); flex: none; }
+    .ev.fraud { color: var(--bad); font-weight: 700; }
+    .ev.settle { color: var(--ok); }
+    .ev.webhook { color: var(--accent); }
+    .ev.flash { animation: flash 1.2s; }
+    @keyframes flash { from { background: color-mix(in srgb, var(--accent) 25%, transparent); } }
+    .net { font-size: 18px; font-weight: 700; margin: 6px 0; }
+    .muted { color: var(--muted); }
+    .alert { grid-column: span 12; background: color-mix(in srgb, var(--bad) 15%, var(--card)); border: 1px solid var(--bad); color: var(--bad); border-radius: 12px; padding: 12px 16px; font-weight: 700; }
+    .frozen-row td { color: var(--bad); }
+    @media (max-width: 900px) {
+      .w6, .w4, .w8 { grid-column: span 12; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>OfflinePay <span>· Partner console</span></h1>
+    <div style="display:flex;gap:12px;align-items:center">
+      <span class="live">LIVE</span>
+      <button id="reset">Reset demo</button>
+    </div>
+  </header>
+  <main id="root"></main>
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>
