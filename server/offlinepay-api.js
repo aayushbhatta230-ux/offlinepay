@@ -155,9 +155,9 @@ export function offlinepayRouter() {
 
   // Partner has locked funds in its ledger → load certificate the SDK adds to the vault.
   r.post('/offline/load', partnerAuth, async (req, res) => {
-    const { deviceId, amount } = req.body || {};
+    const { deviceId, account, amount } = req.body || {};
     const dev = db().devices[deviceId];
-    if (!dev || dev.partner !== req.partner) return res.status(404).json({ error: 'Unknown device' });
+    if (!dev || dev.partner !== req.partner || (account && dev.account !== account)) return res.status(404).json({ error: 'Unknown device' });
     if (dev.status !== 'active') return res.status(403).json({ error: 'Device is frozen' });
     if (!Number.isInteger(amount) || amount <= 0) return res.status(400).json({ error: 'Invalid amount' });
     if (dev.loaded - dev.spent + amount > DEVICE_LIMIT) {

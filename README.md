@@ -17,8 +17,8 @@ npm test           # end-to-end test of the whole protocol
 | URL | What |
 |---|---|
 | `/` | Demo home |
-| `/paya/` | PayA wallet app (Aarav = customer, Sagarmatha Lodge = merchant) |
-| `/payb/` | PayB wallet app (Himalaya Tea House = merchant, Bina = customer) |
+| `/paya/` | PayA wallet app |
+| `/payb/` | PayB wallet app |
 | `/dashboard/` | OfflinePay partner console (put it on the projector) |
 
 ### Android app (APK)
@@ -92,20 +92,32 @@ const paymentQR = await op.pay(requestQR);     // payer, offline
 const result = await op.receive(paymentQR);    // payee, offline
 ```
 
-## Demo script (≈3 min)
+## Accounts
+There are no built-in users. Each person creates an account in the app (**Create account**): full name,
+username, password (8+ characters) and type (personal or merchant). New accounts get Rs 5,000 of demo money.
 
-1. Dashboard on the projector. Phone 1: PayA → **Aarav** → Offline Pay → Enable → load Rs 1,000. Phone 2: PayB → **Himalaya Tea House** → Offline Pay → Enable.
+- Passwords are stored as salted **scrypt** hashes; sessions are random tokens (only their hash is stored), valid 30 days.
+- Every wallet API acts on the signed-in user only, so a phone can only register and load Offline Pay for its own account.
+- 5 wrong passwords lock that username for 1 minute.
+- Once signed in, the app opens and pays offline; signing in itself needs a connection.
+
+## Demo script (≈3 min, two phones)
+
+Suggested setup: phone 1 = **customer** account on PayA, phone 2 = **merchant** account on PayB (cross-wallet payment).
+
+1. Dashboard on the projector. Both phones: Offline Pay → Enable. Customer: load Rs 1,000.
 2. **Airplane mode on both** (or tap the Online pill to simulate offline).
-3. Aarav: open *Demo: attack tools* → **Save vault snapshot**.
-4. Tea House: Receive → Rs 200 → shows QR. Aarav: Pay → scan → Approve → shows QR. Tea House: Scan payer's code → ✅ *Signature verified*.
-5. **Tamper:** Aarav turns on "Tamper with next payment", pays another request → Tea House scan → ❌ *Invalid signature*.
-6. **Double-spend:** Aarav → **Roll back vault** (Rs 1,000 is back). A third phone (PayA → Sagarmatha Lodge) requests Rs 900, Aarav pays, Lodge verifies → ✅ (looks valid offline — this is the honest risk).
-7. **Back online:** Tea House reconnects first → dashboard: ✅ settled, PayA owes PayB Rs 200. Lodge reconnects → 🚩 fraud blocked, Aarav's device and account frozen.
+3. Customer: open *Demo: attack tools* → **Save vault snapshot**.
+4. Merchant: Receive → Rs 200 → shows QR. Customer: Pay → scan → Approve → shows QR. Merchant: Scan payer's code → ✅ *Signature verified*.
+5. **Tamper:** customer turns on "Tamper with next payment" and pays a new request → merchant scan → ❌ *Invalid signature*.
+6. **Double-spend:** customer → **Roll back vault** (Rs 1,000 is back). Merchant makes a new Rs 900 request, customer pays, merchant verifies → ✅ (looks valid offline — this is the honest risk).
+7. **Back online:** the merchant reconnects → dashboard: ✅ Rs 200 settled, PayA owes PayB Rs 200, and 🚩 the Rs 900 double-spend is blocked; the customer's device and account are frozen.
 
-Reset between rehearsals: **Reset demo** on the dashboard, then **Reset this phone** on each phone.
+Reset between rehearsals: **Reset demo** on the dashboard (keeps accounts and passwords, restores balances), then **Reset this phone** on each phone.
 
 ## Honest limits of this demo
 - The vault is in IndexedDB and enforced in software. Production needs hardware-backed keys and counters (Android StrongBox / iOS Secure Enclave); the protocol is designed for that.
 - Double-spending is **detected and capped** (Rs 5,000 per device, KYC'd users), not prevented offline.
 - QR codes are dense (~680 chars). Turn phone brightness up when scanning.
-- Mock wallets have no login or passwords; data is stored in `data/*.json`.
+- Data (accounts, balances, sessions) is stored in `data/*.json` on the laptop. Delete that folder to start completely fresh.
+- The dashboard and its reset button have no login — it is meant for the presenter's laptop.

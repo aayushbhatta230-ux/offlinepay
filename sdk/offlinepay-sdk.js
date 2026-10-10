@@ -222,7 +222,8 @@ export class OfflinePay {
   async _doSync() {
     const v = await this._vault();
     if (!v || !this.isOnline()) return null;
-    const pending = (await this.transactions()).filter((t) => t.status === 'pending');
+    // Oldest first: if two payments conflict, the one that happened first is the one that settles.
+    const pending = (await this.transactions()).filter((t) => t.status === 'pending').reverse();
     const res = await this._api('/v1/sync', {
       deviceId: v.cert.deviceId,
       tokens: pending.map((t) => P.encodeQR(t.token)),

@@ -23,15 +23,15 @@
   <main>
     <h1>OfflinePay demo</h1>
     <p>An offline payment SDK and API that digital wallets plug in. PayA and PayB are mock wallets.</p>
-    <a class="card" href="/paya/"><strong><span class="dot" style="background:#5b3fd6"></span>PayA wallet</strong><span>Aarav Shrestha (customer) · Sagarmatha Lodge (merchant)</span></a>
-    <a class="card" href="/payb/"><strong><span class="dot" style="background:#e0631b"></span>PayB wallet</strong><span>Himalaya Tea House (merchant) · Bina Gurung (customer)</span></a>
+    <a class="card" href="/paya/"><strong><span class="dot" style="background:#5b3fd6"></span>PayA wallet</strong><span>Sign in or create an account</span></a>
+    <a class="card" href="/payb/"><strong><span class="dot" style="background:#e0631b"></span>PayB wallet</strong><span>Sign in or create an account</span></a>
     <a class="card" href="/dashboard/"><strong>OfflinePay partner console</strong><span>Live ledger, settlements, fraud alerts — put this on the projector</span></a>
     <h3>Demo story</h3>
     <ol>
-      <li>Aarav (PayA) enables Offline Pay and loads Rs 1,000 into the vault.</li>
-      <li>Tea House (PayB) also enables Offline Pay.</li>
-      <li>Both go offline. Tea House creates a request; Aarav scans, approves, shows his code; Tea House scans it → verified.</li>
-      <li>Attack: tamper with the amount → rejected. Snapshot → pay → roll back → pay the Lodge → looks valid offline.</li>
+      <li>Create a customer account on PayA and a merchant account on PayB.</li>
+      <li>Both enable Offline Pay; the customer loads Rs 1,000 into the vault.</li>
+      <li>Both go offline. The merchant creates a request; the customer scans, approves and shows a code; the merchant scans it → verified.</li>
+      <li>Attack: tamper with the amount → rejected. Snapshot → pay → roll back → pay again → looks valid offline.</li>
       <li>Go online → the dashboard settles the real payment and catches the double-spend.</li>
     </ol>
   </main>

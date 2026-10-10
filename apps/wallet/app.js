@@ -41,7 +41,10 @@ function toast(msg) {
 
 // ---------- state ----------
 const S = {
-  account: store.get('account'),
+  account: store.get('token') ? store.get('account') : null,
+  token: store.get('token'),
+  authMode: 'login',
+  authError: '',
   me: null,
   op: null,
   opState: { enabled: false },
@@ -57,14 +60,41 @@ const online = () => navigator.onLine && !S.simOffline;
 
 async function api(path, body) {
   if (!online()) throw new Error('No internet connection');
-  const res = await fetch(API + path, {
-    method: body ? 'POST' : 'GET',
-    headers: body ? { 'Content-Type': 'application/json' } : {},
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  const headers = body ? { 'Content-Type': 'application/json' } : {};
+  if (S.token) headers.Authorization = `Bearer ${S.token}`;
+  let res;
+  try {
+    res = await fetch(API + path, { method: body ? 'POST' : 'GET', headers, body: body ? JSON.stringify(body) : undefined });
+  } catch {
+    throw new Error(NATIVE ? `Can't reach the server at ${SERVER}` : "Can't reach the server");
+  }
   const data = await res.json();
+  if (res.status === 401 && S.token) {
+    // Session expired or was revoked: back to the sign-in screen (offline data stays on the phone).
+    endSession();
+    toast('Please sign in again');
+    render();
+  }
   if (!res.ok) throw new Error(data.error || 'Request failed');
   return data;
+}
+
+function startSession(token, me) {
+  S.token = token;
+  S.account = me.account;
+  S.me = me;
+  store.set('token', token);
+  store.set('account', me.account);
+  store.set(`${me.account}:me`, { ...me, cachedAt: Date.now() });
+  setupSdk();
+}
+
+function endSession() {
+  S.account = null; S.token = null; S.op = null; S.me = null;
+  S.opState = { enabled: false }; S.txs = []; S.simOffline = false;
+  S.view = 'home'; S.params = {};
+  store.del('token');
+  store.del('account');
 }
 
 function setupSdk() {
@@ -73,8 +103,9 @@ function setupSdk() {
     account: S.account,
     apiBase: SERVER,
     // The wallet's own backend talks to OfflinePay with its secret partner key.
-    registerDevice: async (pub) => (await api('/offline/enable', { account: S.account, pub })).cert,
-    requestLoad: async (deviceId, amount) => (await api('/offline/load', { account: S.account, deviceId, amount })).loadCert,
+    // The signed-in session decides whose account this is; the app never names the account itself.
+    registerDevice: async (pub) => (await api('/offline/enable', { pub })).cert,
+    requestLoad: async (deviceId, amount) => (await api('/offline/load', { deviceId, amount })).loadCert,
     onChange: () => refreshLocal(),
   });
   S.simOffline = !!store.get(`${S.account}:simOffline`);
@@ -90,7 +121,9 @@ async function refreshLocal() {
 async function refreshRemote() {
   if (!S.account || !online()) return;
   try {
-    S.me = await api(`/me?account=${encodeURIComponent(S.account)}`);
+    const me = await api('/me');
+    if (!S.account) return;
+    S.me = me;
     store.set(`${S.account}:me`, { ...S.me, cachedAt: Date.now() });
   } catch {}
   try { await S.op?.sync(); } catch {}
@@ -217,27 +250,36 @@ const views = {
       </form>`;
   },
 
-  async login() {
-    let users = [];
-    let err = '';
-    try { users = (await api('/users')).users; } catch (e) { err = e.message; }
+  login() {
+    const signup = S.authMode === 'signup';
     return `
       <div class="topbar" style="padding-bottom:24px">
         <div class="row">
-          <div><div class="brand">${BRAND}</div><div class="hello">Demo wallet · choose an account</div></div>
+          <div><div class="brand">${BRAND}</div><div class="hello">${signup ? 'Create your account' : 'Sign in to your wallet'}</div></div>
           ${NATIVE ? '<button class="icon-btn" data-action="changeSetup" title="Change wallet or server">⚙</button>' : ''}
         </div>
       </div>
-      <div class="login">
-        ${err ? `<div class="banner warn">${esc(err)} — ${NATIVE ? `check the server address (${esc(SERVER)}) and that the phone is on the same network.` : 'open this page online first.'}</div>` : ''}
-        <div class="list">
-          ${users.map((u) => `
-            <div class="item" data-action="login" data-account="${esc(u.account)}">
-              <div class="main"><div class="title">${esc(u.name)}</div><div class="sub">${u.type === 'merchant' ? 'Merchant' : 'Personal'} · @${esc(u.account)}</div></div>
-              <div>›</div>
-            </div>`).join('')}
-        </div>
-      </div>`;
+      <div class="tabs">
+        <button class="${signup ? '' : 'on'}" data-action="authMode" data-mode="login">Sign in</button>
+        <button class="${signup ? 'on' : ''}" data-action="authMode" data-mode="signup">Create account</button>
+      </div>
+      ${S.authError ? `<div class="banner bad">${esc(S.authError)}</div>` : ''}
+      ${!online() ? '<div class="banner warn">You are offline. Signing in needs a connection.</div>' : ''}
+      <form class="panel" data-form="${signup ? 'signup' : 'login'}">
+        ${signup ? `<label class="field"><span>Full name</span><input name="name" required minlength="2" maxlength="40" autocomplete="name"></label>` : ''}
+        <label class="field"><span>Username</span><input name="username" required autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="username"
+          ${signup ? 'pattern="[a-z0-9_]{3,20}" title="3–20 lowercase letters, numbers or _"' : ''}></label>
+        <label class="field"><span>Password</span><input name="password" type="password" required ${signup ? 'minlength="8" autocomplete="new-password"' : 'autocomplete="current-password"'}></label>
+        ${signup ? `
+          <label class="field"><span>Confirm password</span><input name="confirm" type="password" required minlength="8" autocomplete="new-password"></label>
+          <label class="field"><span>Account type</span></label>
+          <div class="btn-row" style="margin-bottom:4px">
+            <label class="choice"><input type="radio" name="type" value="personal" checked> Personal</label>
+            <label class="choice"><input type="radio" name="type" value="merchant"> Merchant / shop</label>
+          </div>
+          <p class="meta" style="margin:8px 0 0">New accounts start with Rs 5,000 of demo money.</p>` : ''}
+        <button class="btn" ${online() ? '' : 'disabled'}>${signup ? 'Create account' : 'Sign in'}</button>
+      </form>`;
   },
 
   home() {
@@ -247,7 +289,7 @@ const views = {
       <div class="topbar">
         <div class="row">
           <div><div class="brand">${BRAND}</div><div class="hello">Namaste, ${esc(me.name || S.account)}</div></div>
-          <div class="row">${netPill()}<button class="icon-btn" data-action="logout" title="Switch account">⇄</button></div>
+          <div class="row">${netPill()}<button class="icon-btn" data-action="logout" title="Sign out">⎋</button></div>
         </div>
       </div>
       <div class="balance-card">
@@ -446,20 +488,16 @@ const actions = {
   go: (d) => go(d.view),
   mock: (d) => toast(`${d.name} — not part of this demo`),
 
-  async login(d) {
-    S.account = d.account;
-    store.set('account', d.account);
-    S.me = store.get(`${d.account}:me`);
-    setupSdk();
-    await refreshLocal();
-    go('home');
-    await refreshRemote();
+  authMode(d) {
+    S.authMode = d.mode;
+    S.authError = '';
     render();
   },
 
-  logout() {
-    S.account = null; S.op = null; S.me = null; S.opState = { enabled: false }; S.txs = []; S.simOffline = false;
-    store.del('account');
+  async logout() {
+    if (!confirm('Sign out of this wallet? Offline Pay data stays on this phone for when you sign back in.')) return;
+    if (online()) { try { await api('/logout', {}); } catch {} }
+    endSession();
     go('home');
   },
 
@@ -564,7 +602,35 @@ const actions = {
 // The SDK takes the request as its QR text; rebuild it from the parsed object.
 const encodeReq = (req) => 'OPAY1:' + JSON.stringify(req);
 
+async function finishAuth(path, body) {
+  S.authError = '';
+  try {
+    const { token, me } = await api(path, body);
+    S.authMode = 'login';
+    startSession(token, me);
+    await refreshLocal();
+    go('home');
+    await refreshRemote();
+    render();
+  } catch (e) {
+    S.authError = e.message;
+    render();
+  }
+}
+
 const forms = {
+  login(fd) {
+    finishAuth('/login', { username: fd.get('username').trim().toLowerCase(), password: fd.get('password') });
+  },
+  signup(fd) {
+    if (fd.get('password') !== fd.get('confirm')) { S.authError = 'Passwords do not match'; render(); return; }
+    finishAuth('/signup', {
+      name: fd.get('name').trim(),
+      username: fd.get('username').trim().toLowerCase(),
+      password: fd.get('password'),
+      type: fd.get('type'),
+    });
+  },
   setup(fd, submitter) {
     let server = String(fd.get('server') || '').trim().replace(/\/+$/, '');
     if (!/^https?:\/\//i.test(server)) server = 'http://' + server;
@@ -588,11 +654,11 @@ const forms = {
     } catch (e) { toast(e.message); }
   },
   async topup(fd) {
-    try { S.me = await api('/topup', { account: S.account, amount: Number(fd.get('amount')) }); toast('Money loaded'); go('home'); }
+    try { S.me = await api('/topup', { amount: Number(fd.get('amount')) }); toast('Money loaded'); go('home'); }
     catch (e) { toast(e.message); }
   },
   async send(fd) {
-    try { S.me = await api('/send', { account: S.account, to: fd.get('to').trim(), amount: Number(fd.get('amount')) }); toast('Sent'); go('home'); }
+    try { S.me = await api('/send', { to: fd.get('to').trim(), amount: Number(fd.get('amount')) }); toast('Sent'); go('home'); }
     catch (e) { toast(e.message); }
   },
 };
