@@ -1711,6 +1711,25 @@ body.fullscreen-mode .floating-fs-bar {
   animation: clap-flash 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Real-time Microphone Audio Sensitivity Meter Dot */
+.clap-meter-dot {
+  display: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  margin-left: 3px;
+  pointer-events: none;
+  transition: transform 0.05s ease, background 0.15s ease, box-shadow 0.15s ease;
+  will-change: transform;
+}
+
+.icon-btn.active .clap-meter-dot,
+.floating-fs-btn.active .clap-meter-dot {
+  display: inline-block;
+}
+
 /* ─────────────────────────────────────────────────────────────
    Fullscreen Presentation Mode
    Completely removes HUD bars and expands layout dimensions

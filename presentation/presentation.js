@@ -2751,13 +2751,16 @@ class PresentationApp {
   }
 
   async toggleClapDetection() {
+    if (this.clapAudioCtx && this.clapAudioCtx.state === 'suspended') {
+      await this.clapAudioCtx.resume().catch(() => {});
+    }
     if (this.isClapNavActive) {
       this.stopClapDetection();
       this.showToast('👏 Clap Navigation: OFF');
     } else {
       const started = await this.startClapDetection();
       if (started) {
-        this.showToast('👏 Clap Navigation: ON — Single clap to advance!');
+        this.showToast('👏 High-Sensitivity Clap Nav: ON — Try a clap!');
       }
     }
   }
@@ -2769,13 +2772,22 @@ class PresentationApp {
         return false;
       }
 
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!this.clapAudioCtx) {
+        this.clapAudioCtx = new AudioCtx();
+      }
+      if (this.clapAudioCtx.state === 'suspended') {
+        await this.clapAudioCtx.resume();
+      }
+
+      // Request microphone with autoGainControl enabled for healthy hardware sensitivity
       let stream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           audio: {
+            autoGainControl: true,
             echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false
+            noiseSuppression: false
           }
         });
       } catch (err) {
@@ -2783,32 +2795,40 @@ class PresentationApp {
       }
 
       this.clapStream = stream;
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      this.clapAudioCtx = new AudioCtx();
-      if (this.clapAudioCtx.state === 'suspended') {
-        await this.clapAudioCtx.resume();
-      }
-
       const source = this.clapAudioCtx.createMediaStreamSource(stream);
 
-      // Hand claps have dominant acoustic energy around 2.2 kHz - 3.2 kHz with sharp transient rise
-      const filter = this.clapAudioCtx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(2600, this.clapAudioCtx.currentTime);
-      filter.Q.setValueAtTime(2.2, this.clapAudioCtx.currentTime);
+      // Pre-amplifier GainNode: 4.2x digital boost so even faint/small claps from across the room register clearly
+      const preAmp = this.clapAudioCtx.createGain();
+      preAmp.gain.setValueAtTime(4.2, this.clapAudioCtx.currentTime);
 
+      // Highpass Filter at 350 Hz:
+      // Preserves 100% of ALL clap frequencies (from hollow cupped 600Hz claps to sharp 6000Hz snaps)
+      // while filtering out sub-bass room rumbles, AC hum, and table thumps (<350Hz)
+      const highPass = this.clapAudioCtx.createBiquadFilter();
+      highPass.type = 'highpass';
+      highPass.frequency.setValueAtTime(350, this.clapAudioCtx.currentTime);
+      highPass.Q.setValueAtTime(0.7, this.clapAudioCtx.currentTime);
+
+      // Fast Time-Domain Analyser
       const analyser = this.clapAudioCtx.createAnalyser();
       analyser.fftSize = 512;
       analyser.smoothingTimeConstant = 0.0;
 
-      source.connect(filter);
-      filter.connect(analyser);
+      // Pipeline: Mic Stream -> PreAmp Boost -> Highpass -> Analyser
+      source.connect(preAmp);
+      preAmp.connect(highPass);
+      highPass.connect(analyser);
 
       this.isClapNavActive = true;
       this.updateClapUI(true);
 
       const buffer = new Float32Array(analyser.fftSize);
-      let baselineEnergy = 0.015;
+      let prevPeak = 0.005;
+      let prevRms = 0.005;
+      let noiseFloor = 0.008;
+
+      const meterDot = document.getElementById('clap-meter-dot');
+      const fsMeterDot = document.getElementById('fs-clap-meter');
 
       const processAudio = () => {
         if (!this.isClapNavActive) return;
@@ -2824,22 +2844,39 @@ class PresentationApp {
         }
         const rms = Math.sqrt(sumSq / buffer.length);
 
-        // Slowly adapt baseline energy to ambient room floor
-        baselineEnergy = baselineEnergy * 0.96 + rms * 0.04;
+        // Real-time audio meter animation (gives immediate visual feedback of mic listening)
+        if (meterDot || fsMeterDot) {
+          const visualScale = Math.min(2.8, Math.max(0.6, 0.6 + rms * 14));
+          const dotTransform = `scale(${visualScale})`;
+          if (meterDot) meterDot.style.transform = dotTransform;
+          if (fsMeterDot) fsMeterDot.style.transform = dotTransform;
+        }
+
+        // Slowly track ambient background room floor (smooth exponential average)
+        noiseFloor = noiseFloor * 0.98 + rms * 0.02;
 
         const now = performance.now();
-        const cooldown = 1350; // 1.35s debounce protects against echoes or hand recoil
+        const cooldown = 950; // 950ms debounce prevents double triggers
         const cooldownPassed = (now - this.lastClapTimestamp) > cooldown;
 
-        // Acoustic clap recognition:
-        // 1. Peak exceeds threshold (> 0.28)
-        // 2. High Crest Factor (Peak / RMS > 3.2) distinguishes sharp claps from continuous vowels/speech
-        // 3. Peak stands out at least 3.8x above background ambient floor
-        if (cooldownPassed && peak > 0.28 && (peak / (rms + 0.0001)) > 3.2 && peak > baselineEnergy * 3.8) {
+        // Instantaneous Transient Calculation:
+        // Claps cause an instantaneous step spike in peak amplitude and RMS within < 15ms
+        const deltaPeak = peak - prevPeak;
+        const deltaRms = rms - prevRms;
+        const jumpRatio = rms / (noiseFloor + 0.0005);
+
+        // Hyper-sensitive clap impulse criteria:
+        // Catches even soft/small claps while ignoring steady talking vowels
+        const isTransientSpike = (deltaPeak > 0.028) || (deltaRms > 0.012) || (jumpRatio > 1.9 && peak > 0.045);
+        const hasMinimumClapEnergy = peak > 0.045;
+
+        if (cooldownPassed && hasMinimumClapEnergy && isTransientSpike) {
           this.lastClapTimestamp = now;
           this.onClapDetected();
         }
 
+        prevPeak = peak;
+        prevRms = rms;
         this.clapRafId = requestAnimationFrame(processAudio);
       };
 
@@ -2847,7 +2884,7 @@ class PresentationApp {
       return true;
 
     } catch (err) {
-      console.warn('Microphone access denied or error:', err);
+      console.warn('Microphone access error:', err);
       this.isClapNavActive = false;
       this.updateClapUI(false);
       this.showToast('⚠️ Microphone permission required for Clap Navigation', true);
@@ -2894,10 +2931,27 @@ class PresentationApp {
 
     const clapBtn = document.getElementById('clap-toggle-btn');
     const fsClapBtn = document.getElementById('fs-clap-btn');
+    const meterDot = document.getElementById('clap-meter-dot');
+    const fsMeterDot = document.getElementById('fs-clap-meter');
+
     [clapBtn, fsClapBtn].forEach(btn => {
       if (btn) {
         btn.classList.add('clap-pulse');
-        setTimeout(() => btn.classList.remove('clap-pulse'), 600);
+        setTimeout(() => btn.classList.remove('clap-pulse'), 550);
+      }
+    });
+
+    [meterDot, fsMeterDot].forEach(dot => {
+      if (dot) {
+        dot.style.background = '#00f0ff';
+        dot.style.boxShadow = '0 0 16px #00f0ff';
+        dot.style.transform = 'scale(3)';
+        setTimeout(() => {
+          if (dot) {
+            dot.style.background = '#10b981';
+            dot.style.boxShadow = '0 0 10px #10b981';
+          }
+        }, 400);
       }
     });
 
