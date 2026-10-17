@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>OfflinePay — 3D Pitch Deck</title>
-  <link rel="stylesheet" href="presentation.css?v=20261017_v29">
+  <link rel="stylesheet" href="presentation.css?v=20261017_v30">
   <!-- Local Three.js for 100% OFFLINE reliability -->
   <script src="vendor/three.min.js"></script>
 </head>
@@ -12,6 +12,12 @@
   <!-- 3D WebGL Canvas Layer -->
   <div id="canvas-container"></div>
   <div class="vignette-overlay"></div>
+
+  <!-- Discreet Floating Exit Button (Visible ONLY in Fullscreen) -->
+  <button id="floating-fs-exit-btn" class="floating-fs-exit-btn" title="Exit Fullscreen [Esc or F]" onclick="presentation.exitFullscreen()">
+    <span class="fs-exit-icon">✕</span>
+    <span class="fs-exit-text">Exit Fullscreen</span>
+  </button>
 
   <!-- Interactive HUD Toast -->
   <div id="hud-toast" class="hud-toast">
@@ -100,7 +106,7 @@
   </aside>
 
   <!-- Presentation Engine Script -->
-  <script src="presentation.js?v=20261017_v29"></script>
+  <script src="presentation.js?v=20261017_v30"></script>
 </body>
 </html>
 

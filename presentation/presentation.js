@@ -2685,11 +2685,62 @@ class PresentationApp {
   }
 
   toggleFullscreen() {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
+    const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.body.classList.contains('fullscreen-mode'));
+    if (!isFS) {
+      const el = document.documentElement;
+      if (el.requestFullscreen) {
+        el.requestFullscreen().catch(() => {
+          this.setSimulatedFullscreen(true);
+        });
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen().catch(() => {
+          this.setSimulatedFullscreen(true);
+        });
+      } else {
+        this.setSimulatedFullscreen(true);
+      }
     } else {
-      if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+      if (document.exitFullscreen && document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      } else if (document.webkitExitFullscreen && document.webkitFullscreenElement) {
+        document.webkitExitFullscreen().catch(() => {});
+      }
+      this.setSimulatedFullscreen(false);
     }
+  }
+
+  exitFullscreen() {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      document.exitFullscreen().catch(() => {});
+    } else if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+      document.webkitExitFullscreen().catch(() => {});
+    }
+    this.setSimulatedFullscreen(false);
+  }
+
+  setSimulatedFullscreen(enable) {
+    document.body.classList.toggle('fullscreen-mode', enable);
+    document.documentElement.classList.toggle('fullscreen-mode', enable);
+    this.syncFullscreenUI();
+  }
+
+  syncFullscreenUI() {
+    const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.body.classList.contains('fullscreen-mode'));
+    document.body.classList.toggle('fullscreen-mode', isFS);
+    document.documentElement.classList.toggle('fullscreen-mode', isFS);
+
+    const fsBtn = document.getElementById('fullscreen-btn');
+    if (fsBtn) {
+      fsBtn.textContent = isFS ? '🗗' : '⛶';
+      fsBtn.title = isFS ? 'Exit Fullscreen [F]' : 'Toggle Fullscreen [F]';
+    }
+
+    const floatingExitBtn = document.getElementById('floating-fs-exit-btn');
+    if (floatingExitBtn) {
+      floatingExitBtn.style.display = isFS ? 'inline-flex' : 'none';
+    }
+
+    this.updateResponsiveLayout();
   }
 
   toggleMute() {
@@ -2754,6 +2805,7 @@ class PresentationApp {
     const h = window.innerHeight;
     const aspect = w / h;
     const isPortrait = h > w;
+    const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.body.classList.contains('fullscreen-mode'));
 
     if (this.camera) {
       this.camera.aspect = aspect;
@@ -2781,28 +2833,28 @@ class PresentationApp {
     } else if (w < 1100) {
       // Compact landscape (1024x768, laptops, netbooks) - Keep medium-sized and prominent!
       const posX = 1.62;
-      this.targetCamera = { x: 0, y: 0.08, z: 5.85 };
+      this.targetCamera = { x: 0, y: 0.08, z: isFS ? 5.60 : 5.85 };
       this.targetLookAt = { x: 0, y: 0, z: 0 };
 
       this.slideObjects.forEach((grp, idx) => {
         const slideData = SLIDES[idx];
         const slideId = slideData ? slideData.id : null;
-        const scaleVal = this.getSlideScale(slideId) * 0.94;
+        const scaleVal = this.getSlideScale(slideId) * (isFS ? 1.05 : 0.94);
         const yOff = this.getSlideYOffset(slideId);
         grp.position.set(posX, yOff, 0);
         grp.scale.set(scaleVal, scaleVal, scaleVal);
       });
     } else {
       // Standard desktop / wide screen:
-      // Perfectly centered in the right stage area with medium, commanding presence
-      const posX = 1.74;
-      this.targetCamera = { x: 0, y: 0.08, z: 5.75 };
+      // In fullscreen, camera is positioned closer and 3D objects are scaled up by 1.12x to fill stage
+      const posX = isFS ? 1.76 : 1.74;
+      this.targetCamera = { x: 0, y: 0.08, z: isFS ? 5.50 : 5.75 };
       this.targetLookAt = { x: 0, y: 0, z: 0 };
 
       this.slideObjects.forEach((grp, idx) => {
         const slideData = SLIDES[idx];
         const slideId = slideData ? slideData.id : null;
-        const scaleVal = this.getSlideScale(slideId);
+        const scaleVal = this.getSlideScale(slideId) * (isFS ? 1.12 : 1.0);
         const yOff = this.getSlideYOffset(slideId);
         grp.position.set(posX, yOff, 0);
         grp.scale.set(scaleVal, scaleVal, scaleVal);
@@ -2818,6 +2870,13 @@ class PresentationApp {
     window.addEventListener('orientationchange', () => {
       setTimeout(() => this.updateResponsiveLayout(), 120);
     });
+
+    // Browser fullscreen state change listeners
+    const onFullscreenChange = () => this.syncFullscreenUI();
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+    document.addEventListener('mozfullscreenchange', onFullscreenChange);
+    document.addEventListener('MSFullscreenChange', onFullscreenChange);
 
     // First-interaction gesture: auto-start problem video with sound on first user gesture
     const triggerAudioOnFirstGesture = () => {
@@ -2846,6 +2905,10 @@ class PresentationApp {
         this.togglePrompter();
       } else if (e.key === 'f' || e.key === 'F') {
         this.toggleFullscreen();
+      } else if (e.key === 'Escape') {
+        if (document.body.classList.contains('fullscreen-mode') && !document.fullscreenElement) {
+          this.setSimulatedFullscreen(false);
+        }
       } else if (e.key === 'm' || e.key === 'M') {
         this.toggleMute();
       } else if (e.key >= '1' && e.key <= '8') {
@@ -2866,6 +2929,17 @@ class PresentationApp {
     });
 
     window.addEventListener('mousemove', (e) => {
+      const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.body.classList.contains('fullscreen-mode'));
+      if (isFS) {
+        const bottomHud = document.querySelector('.bottom-hud');
+        if (bottomHud) {
+          if (e.clientY > window.innerHeight - 80) {
+            bottomHud.classList.add('hover-active');
+          } else {
+            bottomHud.classList.remove('hover-active');
+          }
+        }
+      }
       if (this.isDragging) {
         const dx = e.clientX - this.prevMouseX;
         const dy = e.clientY - this.prevMouseY;
