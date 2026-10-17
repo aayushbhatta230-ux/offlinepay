@@ -54,6 +54,7 @@ for (const id of ['paya', 'payb']) app.use(`/${id}`, express.static(path.join(ro
 app.use('/sdk', express.static(path.join(root, 'sdk')));
 app.use('/core', express.static(path.join(root, 'core')));
 app.use('/dashboard', express.static(path.join(root, 'apps', 'dashboard')));
+app.use('/presentation', express.static(path.join(root, 'presentation')));
 app.use('/vendor/qrcode.js', (req, res) => res.sendFile(path.join(root, 'node_modules', 'qrcode-generator', 'qrcode.js')));
 app.use('/vendor/jsQR.js', (req, res) => res.sendFile(path.join(root, 'node_modules', 'jsqr', 'dist', 'jsQR.js')));
 app.get('/', (req, res) => res.sendFile(path.join(root, 'apps', 'home.html')));
@@ -63,9 +64,10 @@ app.listen(PORT, () => {
     .filter((i) => i && i.family === 'IPv4' && !i.internal)
     .map((i) => `http://${i.address}:${PORT}`);
   console.log(`OfflinePay demo server running:
-  Home        http://localhost:${PORT}/
-  PayA wallet http://localhost:${PORT}/paya/
-  PayB wallet http://localhost:${PORT}/payb/
-  Dashboard   http://localhost:${PORT}/dashboard/
+  Home           http://localhost:${PORT}/
+  PayA wallet    http://localhost:${PORT}/paya/
+  PayB wallet    http://localhost:${PORT}/payb/
+  Dashboard      http://localhost:${PORT}/dashboard/
+  3D Pitch Deck  http://localhost:${PORT}/presentation/
   For the Android app's server mode: ${lan.join('  or  ') || '(no network found)'}`);
 });

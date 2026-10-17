@@ -4,6 +4,7 @@
   "description": "Offline payment SDK + API demo",
   "scripts": {
     "start": "node server/index.js",
+    "pitch": "node server/index.js",
     "test": "node test/e2e.test.js && node test/standalone.test.js",
     "build:www": "node scripts/build-icons.js && node scripts/build-www.js",
     "build:android": "node scripts/build-www.js && npx cap sync android",

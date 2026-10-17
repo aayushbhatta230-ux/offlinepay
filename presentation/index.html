@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>OfflinePay — 3D Pitch Deck</title>
+  <link rel="stylesheet" href="presentation.css?v=20261017_v28">
+  <!-- Local Three.js for 100% OFFLINE reliability -->
+  <script src="vendor/three.min.js"></script>
+</head>
+<body>
+  <!-- 3D WebGL Canvas Layer -->
+  <div id="canvas-container"></div>
+  <div class="vignette-overlay"></div>
+
+  <!-- Interactive HUD Toast -->
+  <div id="hud-toast" class="hud-toast">
+    <span id="toast-text">System Initialized</span>
+  </div>
+
+  <!-- Top Navigation & Presentation HUD -->
+  <header class="top-hud">
+    <div class="brand-badge">
+      <div class="brand-logo-icon">OP</div>
+      <span class="brand-text">OfflinePay</span>
+      <span class="brand-tag">Trinity Sci-Pitch</span>
+    </div>
+
+    <div class="hud-center">
+      <div class="timer-box">
+        <div class="timer-dot"></div>
+        <span id="hud-timer">00:00</span>
+      </div>
+      <div class="slide-counter">
+        <span id="hud-current-slide">01</span> / <span id="hud-total-slides">07</span>
+      </div>
+    </div>
+
+    <div class="hud-actions">
+      <button id="sound-toggle-btn" class="icon-btn active" title="Toggle Sound [M]" onclick="presentation.toggleMute()">
+        🔊
+      </button>
+      <button id="prompter-toggle-btn" class="icon-btn" title="Presenter Prompter [P / N]" onclick="presentation.togglePrompter()">
+        🎙️
+      </button>
+      <button id="fullscreen-btn" class="icon-btn" title="Toggle Fullscreen [F]" onclick="presentation.toggleFullscreen()">
+        ⛶
+      </button>
+    </div>
+  </header>
+
+  <!-- Slide Viewport (Filled Dynamically) -->
+  <main id="slide-viewport" class="slide-viewport"></main>
+
+  <!-- Bottom Minimal Navigation HUD -->
+  <footer class="bottom-hud">
+    <div class="nav-center">
+      <button class="nav-arrow-btn" title="Previous Slide [Left Arrow]" onclick="presentation.prevSlide()">
+        &#9664;
+      </button>
+      <div id="slide-dots" class="slide-dots-container"></div>
+      <button class="nav-arrow-btn" title="Next Slide [Right Arrow / Space]" onclick="presentation.nextSlide()">
+        &#9654;
+      </button>
+    </div>
+  </footer>
+
+  <!-- Presenter Prompter Drawer (Press 'P') -->
+  <aside id="prompter-drawer" class="prompter-drawer">
+    <div class="prompter-header">
+      <div id="prompter-title" class="prompter-title">🎙️ Presenter Prompter</div>
+      <button class="prompter-close-btn" onclick="presentation.togglePrompter()">&times;</button>
+    </div>
+
+    <div class="notes-section">
+      <div class="notes-section-title">What to Say (Pitch Script)</div>
+      <div id="prompter-script" class="speech-script">
+        Hook the audience with the reality of network dropouts in emerging markets.
+      </div>
+    </div>
+
+    <div class="notes-section">
+      <div class="notes-section-title">Technical Deep-Dive Highlight</div>
+      <div id="prompter-takeaway" class="tech-takeaway">
+        ECDSA P-256 non-extractable device keys & sequential cryptographic hash chains.
+      </div>
+    </div>
+
+    <div class="notes-section">
+      <div class="notes-section-title">Live 3D & Demo Cue</div>
+      <div id="prompter-cue" class="tech-takeaway" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+        Click the primary button to ignite the holographic vault.
+      </div>
+    </div>
+
+    <div class="notes-section">
+      <div class="notes-section-title">Anticipated Investor Q&A</div>
+      <div id="prompter-qa"></div>
+    </div>
+  </aside>
+
+  <!-- Presentation Engine Script -->
+  <script src="presentation.js?v=20261017_v28"></script>
+</body>
+</html>
+
