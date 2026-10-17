@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>OfflinePay — 3D Pitch Deck</title>
-  <link rel="stylesheet" href="presentation.css?v=20261017_v30">
+  <link rel="stylesheet" href="presentation.css?v=20261017_v31">
   <!-- Local Three.js for 100% OFFLINE reliability -->
   <script src="vendor/three.min.js"></script>
 </head>
@@ -13,11 +13,17 @@
   <div id="canvas-container"></div>
   <div class="vignette-overlay"></div>
 
-  <!-- Discreet Floating Exit Button (Visible ONLY in Fullscreen) -->
-  <button id="floating-fs-exit-btn" class="floating-fs-exit-btn" title="Exit Fullscreen [Esc or F]" onclick="presentation.exitFullscreen()">
-    <span class="fs-exit-icon">✕</span>
-    <span class="fs-exit-text">Exit Fullscreen</span>
-  </button>
+  <!-- Discreet Floating Controls (Visible ONLY in Fullscreen) -->
+  <div id="floating-fs-bar" class="floating-fs-bar">
+    <button id="fs-clap-btn" class="floating-fs-btn" title="Toggle Clap Navigation [C]" onclick="presentation.toggleClapDetection()">
+      <span class="fs-clap-icon">👏</span>
+      <span id="fs-clap-label" class="fs-btn-text">Clap Nav: OFF</span>
+    </button>
+    <button id="floating-fs-exit-btn" class="floating-fs-btn exit-btn" title="Exit Fullscreen [Esc or F]" onclick="presentation.exitFullscreen()">
+      <span class="fs-exit-icon">✕</span>
+      <span class="fs-btn-text">Exit</span>
+    </button>
+  </div>
 
   <!-- Interactive HUD Toast -->
   <div id="hud-toast" class="hud-toast">
@@ -43,6 +49,9 @@
     </div>
 
     <div class="hud-actions">
+      <button id="clap-toggle-btn" class="icon-btn" title="Toggle Clap Navigation [C]" onclick="presentation.toggleClapDetection()">
+        👏
+      </button>
       <button id="sound-toggle-btn" class="icon-btn active" title="Toggle Sound [M]" onclick="presentation.toggleMute()">
         🔊
       </button>
@@ -106,7 +115,7 @@
   </aside>
 
   <!-- Presentation Engine Script -->
-  <script src="presentation.js?v=20261017_v30"></script>
+  <script src="presentation.js?v=20261017_v31"></script>
 </body>
 </html>
 

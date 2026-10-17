@@ -972,6 +972,13 @@ class PresentationApp {
     this.startTime = Date.now();
     this.isPrompterOpen = false;
 
+    // Real-Time Clap Navigation System
+    this.isClapNavActive = false;
+    this.clapAudioCtx = null;
+    this.clapStream = null;
+    this.clapRafId = null;
+    this.lastClapTimestamp = 0;
+
     // Three.js Core
     this.scene = null;
     this.camera = null;
@@ -2735,12 +2742,174 @@ class PresentationApp {
       fsBtn.title = isFS ? 'Exit Fullscreen [F]' : 'Toggle Fullscreen [F]';
     }
 
-    const floatingExitBtn = document.getElementById('floating-fs-exit-btn');
-    if (floatingExitBtn) {
-      floatingExitBtn.style.display = isFS ? 'inline-flex' : 'none';
+    const floatingBar = document.getElementById('floating-fs-bar');
+    if (floatingBar) {
+      floatingBar.style.display = isFS ? 'inline-flex' : 'none';
     }
 
     this.updateResponsiveLayout();
+  }
+
+  async toggleClapDetection() {
+    if (this.isClapNavActive) {
+      this.stopClapDetection();
+      this.showToast('👏 Clap Navigation: OFF');
+    } else {
+      const started = await this.startClapDetection();
+      if (started) {
+        this.showToast('👏 Clap Navigation: ON — Single clap to advance!');
+      }
+    }
+  }
+
+  async startClapDetection() {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        this.showToast('⚠️ Microphone API not supported in this browser', true);
+        return false;
+      }
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }
+        });
+      } catch (err) {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+
+      this.clapStream = stream;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.clapAudioCtx = new AudioCtx();
+      if (this.clapAudioCtx.state === 'suspended') {
+        await this.clapAudioCtx.resume();
+      }
+
+      const source = this.clapAudioCtx.createMediaStreamSource(stream);
+
+      // Hand claps have dominant acoustic energy around 2.2 kHz - 3.2 kHz with sharp transient rise
+      const filter = this.clapAudioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(2600, this.clapAudioCtx.currentTime);
+      filter.Q.setValueAtTime(2.2, this.clapAudioCtx.currentTime);
+
+      const analyser = this.clapAudioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.0;
+
+      source.connect(filter);
+      filter.connect(analyser);
+
+      this.isClapNavActive = true;
+      this.updateClapUI(true);
+
+      const buffer = new Float32Array(analyser.fftSize);
+      let baselineEnergy = 0.015;
+
+      const processAudio = () => {
+        if (!this.isClapNavActive) return;
+
+        analyser.getFloatTimeDomainData(buffer);
+
+        let peak = 0;
+        let sumSq = 0;
+        for (let i = 0; i < buffer.length; i++) {
+          const val = Math.abs(buffer[i]);
+          if (val > peak) peak = val;
+          sumSq += val * val;
+        }
+        const rms = Math.sqrt(sumSq / buffer.length);
+
+        // Slowly adapt baseline energy to ambient room floor
+        baselineEnergy = baselineEnergy * 0.96 + rms * 0.04;
+
+        const now = performance.now();
+        const cooldown = 1350; // 1.35s debounce protects against echoes or hand recoil
+        const cooldownPassed = (now - this.lastClapTimestamp) > cooldown;
+
+        // Acoustic clap recognition:
+        // 1. Peak exceeds threshold (> 0.28)
+        // 2. High Crest Factor (Peak / RMS > 3.2) distinguishes sharp claps from continuous vowels/speech
+        // 3. Peak stands out at least 3.8x above background ambient floor
+        if (cooldownPassed && peak > 0.28 && (peak / (rms + 0.0001)) > 3.2 && peak > baselineEnergy * 3.8) {
+          this.lastClapTimestamp = now;
+          this.onClapDetected();
+        }
+
+        this.clapRafId = requestAnimationFrame(processAudio);
+      };
+
+      this.clapRafId = requestAnimationFrame(processAudio);
+      return true;
+
+    } catch (err) {
+      console.warn('Microphone access denied or error:', err);
+      this.isClapNavActive = false;
+      this.updateClapUI(false);
+      this.showToast('⚠️ Microphone permission required for Clap Navigation', true);
+      return false;
+    }
+  }
+
+  stopClapDetection() {
+    this.isClapNavActive = false;
+    if (this.clapRafId) {
+      cancelAnimationFrame(this.clapRafId);
+      this.clapRafId = null;
+    }
+    if (this.clapStream) {
+      this.clapStream.getTracks().forEach(t => t.stop());
+      this.clapStream = null;
+    }
+    if (this.clapAudioCtx) {
+      this.clapAudioCtx.close().catch(() => {});
+      this.clapAudioCtx = null;
+    }
+    this.updateClapUI(false);
+  }
+
+  updateClapUI(active) {
+    const clapBtn = document.getElementById('clap-toggle-btn');
+    if (clapBtn) {
+      clapBtn.classList.toggle('active', active);
+      clapBtn.title = active ? 'Clap Navigation: ON [C]' : 'Toggle Clap Navigation [C]';
+    }
+    const fsClapBtn = document.getElementById('fs-clap-btn');
+    const fsClapLabel = document.getElementById('fs-clap-label');
+    if (fsClapBtn) {
+      fsClapBtn.classList.toggle('active', active);
+    }
+    if (fsClapLabel) {
+      fsClapLabel.textContent = active ? 'Clap Nav: ON' : 'Clap Nav: OFF';
+    }
+  }
+
+  onClapDetected() {
+    sfx.click();
+    this.showToast('👏 Clap Detected! ➔ Next Slide');
+
+    const clapBtn = document.getElementById('clap-toggle-btn');
+    const fsClapBtn = document.getElementById('fs-clap-btn');
+    [clapBtn, fsClapBtn].forEach(btn => {
+      if (btn) {
+        btn.classList.add('clap-pulse');
+        setTimeout(() => btn.classList.remove('clap-pulse'), 600);
+      }
+    });
+
+    // If on Slide 1 and problem video is paused / overlay visible, start video with sound
+    const vid = document.getElementById('problem-live-video');
+    const overlay = document.getElementById('problem-start-overlay');
+    if (this.currentSlideIndex === 0 && vid && (vid.paused || (overlay && !overlay.classList.contains('hidden')))) {
+      this.startProblemVideoWithSound();
+      return;
+    }
+
+    this.nextSlide();
   }
 
   toggleMute() {
@@ -2909,6 +3078,8 @@ class PresentationApp {
         if (document.body.classList.contains('fullscreen-mode') && !document.fullscreenElement) {
           this.setSimulatedFullscreen(false);
         }
+      } else if (e.key === 'c' || e.key === 'C') {
+        this.toggleClapDetection();
       } else if (e.key === 'm' || e.key === 'M') {
         this.toggleMute();
       } else if (e.key >= '1' && e.key <= '8') {
