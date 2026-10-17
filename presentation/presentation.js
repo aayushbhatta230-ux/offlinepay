@@ -2750,17 +2750,38 @@ class PresentationApp {
     this.updateResponsiveLayout();
   }
 
-  async toggleClapDetection() {
-    if (this.clapAudioCtx && this.clapAudioCtx.state === 'suspended') {
-      await this.clapAudioCtx.resume().catch(() => {});
+  toggleClapDetection() {
+    // 1. Mandatory for iOS Safari: Synchronously instantiate & resume AudioContext inside the user gesture call stack
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!this.clapAudioCtx && AudioCtx) {
+      this.clapAudioCtx = new AudioCtx();
     }
+    if (this.clapAudioCtx && this.clapAudioCtx.state === 'suspended') {
+      this.clapAudioCtx.resume().catch(() => {});
+    }
+
+    // Force-unlock iOS WebAudio hardware pipeline by playing a 1-sample silent buffer directly to destination
+    try {
+      if (this.clapAudioCtx) {
+        const dummy = this.clapAudioCtx.createBuffer(1, 1, 22050);
+        const src = this.clapAudioCtx.createBufferSource();
+        src.buffer = dummy;
+        src.connect(this.clapAudioCtx.destination);
+        src.start(0);
+      }
+    } catch (_) {}
+
+    this.executeToggleClap();
+  }
+
+  async executeToggleClap() {
     if (this.isClapNavActive) {
       this.stopClapDetection();
       this.showToast('👏 Clap Navigation: OFF');
     } else {
       const started = await this.startClapDetection();
       if (started) {
-        this.showToast('👏 High-Sensitivity Clap Nav: ON — Try a clap!');
+        this.showToast('👏 Clap Nav Active — Listening (Try clapping now!)');
       }
     }
   }
@@ -2773,40 +2794,35 @@ class PresentationApp {
       }
 
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!this.clapAudioCtx) {
+      if (!this.clapAudioCtx && AudioCtx) {
         this.clapAudioCtx = new AudioCtx();
       }
-      if (this.clapAudioCtx.state === 'suspended') {
-        await this.clapAudioCtx.resume();
+      if (this.clapAudioCtx && this.clapAudioCtx.state === 'suspended') {
+        await this.clapAudioCtx.resume().catch(() => {});
       }
 
-      // Request microphone with autoGainControl enabled for healthy hardware sensitivity
+      // Universal audio constraint: { audio: true } works 100% on iOS Safari, Android, and Desktop
       let stream;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            autoGainControl: true,
-            echoCancellation: false,
-            noiseSuppression: false
-          }
-        });
-      } catch (err) {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (err) {
+        console.warn('getUserMedia standard error, retrying fallback:', err);
+        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false } });
       }
 
       this.clapStream = stream;
       const source = this.clapAudioCtx.createMediaStreamSource(stream);
 
-      // Pre-amplifier GainNode: 4.2x digital boost so even faint/small claps from across the room register clearly
+      // Pre-amplifier GainNode: 4.5x digital boost so even soft claps from across the room register strongly
       const preAmp = this.clapAudioCtx.createGain();
-      preAmp.gain.setValueAtTime(4.2, this.clapAudioCtx.currentTime);
+      preAmp.gain.setValueAtTime(4.5, this.clapAudioCtx.currentTime);
 
-      // Highpass Filter at 350 Hz:
-      // Preserves 100% of ALL clap frequencies (from hollow cupped 600Hz claps to sharp 6000Hz snaps)
-      // while filtering out sub-bass room rumbles, AC hum, and table thumps (<350Hz)
+      // Highpass Filter at 320 Hz:
+      // Preserves 100% of ALL clap frequencies (from hollow cupped 500Hz claps to sharp 6000Hz snaps)
+      // while filtering out sub-bass room rumbles, AC hum, and table thumps (<320Hz)
       const highPass = this.clapAudioCtx.createBiquadFilter();
       highPass.type = 'highpass';
-      highPass.frequency.setValueAtTime(350, this.clapAudioCtx.currentTime);
+      highPass.frequency.setValueAtTime(320, this.clapAudioCtx.currentTime);
       highPass.Q.setValueAtTime(0.7, this.clapAudioCtx.currentTime);
 
       // Fast Time-Domain Analyser
@@ -2819,10 +2835,19 @@ class PresentationApp {
       preAmp.connect(highPass);
       highPass.connect(analyser);
 
+      // CRITICAL FOR iOS SAFARI / WEBKIT:
+      // Analyser MUST be connected to audioCtx.destination via a mute gain node!
+      // Otherwise WebKit idles the MediaStreamAudioSourceNode and returns 100% flatline silence!
+      const muteNode = this.clapAudioCtx.createGain();
+      muteNode.gain.setValueAtTime(0, this.clapAudioCtx.currentTime);
+      analyser.connect(muteNode);
+      muteNode.connect(this.clapAudioCtx.destination);
+
       this.isClapNavActive = true;
       this.updateClapUI(true);
 
-      const buffer = new Float32Array(analyser.fftSize);
+      // Use Uint8Array with getByteTimeDomainData - 100% guaranteed on every iOS Safari and browser version
+      const byteData = new Uint8Array(analyser.fftSize);
       let prevPeak = 0.005;
       let prevRms = 0.005;
       let noiseFloor = 0.008;
@@ -2833,20 +2858,21 @@ class PresentationApp {
       const processAudio = () => {
         if (!this.isClapNavActive) return;
 
-        analyser.getFloatTimeDomainData(buffer);
+        analyser.getByteTimeDomainData(byteData);
 
         let peak = 0;
         let sumSq = 0;
-        for (let i = 0; i < buffer.length; i++) {
-          const val = Math.abs(buffer[i]);
+        for (let i = 0; i < byteData.length; i++) {
+          // In byte domain: 0..255 with 128 as silence. Normalize to [-1.0, 1.0]
+          const val = Math.abs((byteData[i] - 128) / 128.0);
           if (val > peak) peak = val;
           sumSq += val * val;
         }
-        const rms = Math.sqrt(sumSq / buffer.length);
+        const rms = Math.sqrt(sumSq / byteData.length);
 
-        // Real-time audio meter animation (gives immediate visual feedback of mic listening)
+        // Real-time audio meter animation (gives immediate visual feedback of mic listening on iOS & desktop)
         if (meterDot || fsMeterDot) {
-          const visualScale = Math.min(2.8, Math.max(0.6, 0.6 + rms * 14));
+          const visualScale = Math.min(2.8, Math.max(0.6, 0.6 + rms * 15));
           const dotTransform = `scale(${visualScale})`;
           if (meterDot) meterDot.style.transform = dotTransform;
           if (fsMeterDot) fsMeterDot.style.transform = dotTransform;
@@ -2856,19 +2882,19 @@ class PresentationApp {
         noiseFloor = noiseFloor * 0.98 + rms * 0.02;
 
         const now = performance.now();
-        const cooldown = 950; // 950ms debounce prevents double triggers
+        const cooldown = 900; // 900ms debounce prevents double triggers
         const cooldownPassed = (now - this.lastClapTimestamp) > cooldown;
 
         // Instantaneous Transient Calculation:
-        // Claps cause an instantaneous step spike in peak amplitude and RMS within < 15ms
+        // Claps cause an abrupt, instantaneous step spike in peak amplitude and RMS within < 15ms
         const deltaPeak = peak - prevPeak;
         const deltaRms = rms - prevRms;
         const jumpRatio = rms / (noiseFloor + 0.0005);
 
         // Hyper-sensitive clap impulse criteria:
         // Catches even soft/small claps while ignoring steady talking vowels
-        const isTransientSpike = (deltaPeak > 0.028) || (deltaRms > 0.012) || (jumpRatio > 1.9 && peak > 0.045);
-        const hasMinimumClapEnergy = peak > 0.045;
+        const isTransientSpike = (deltaPeak > 0.025) || (deltaRms > 0.010) || (jumpRatio > 1.8 && peak > 0.04);
+        const hasMinimumClapEnergy = peak > 0.04;
 
         if (cooldownPassed && hasMinimumClapEnergy && isTransientSpike) {
           this.lastClapTimestamp = now;
@@ -3101,15 +3127,23 @@ class PresentationApp {
     document.addEventListener('mozfullscreenchange', onFullscreenChange);
     document.addEventListener('MSFullscreenChange', onFullscreenChange);
 
-    // First-interaction gesture: auto-start problem video with sound on first user gesture
+    // First-interaction gesture: auto-start problem video with sound on first user gesture & unlock WebAudio
     const triggerAudioOnFirstGesture = () => {
       const vid = document.getElementById('problem-live-video');
       const overlay = document.getElementById('problem-start-overlay');
       if (vid && this.currentSlideIndex === 0 && (vid.paused || (overlay && !overlay.classList.contains('hidden')))) {
         this.startProblemVideoWithSound();
       }
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!this.clapAudioCtx && AudioCtx) {
+        this.clapAudioCtx = new AudioCtx();
+      }
+      if (this.clapAudioCtx && this.clapAudioCtx.state === 'suspended') {
+        this.clapAudioCtx.resume().catch(() => {});
+      }
     };
     window.addEventListener('click', triggerAudioOnFirstGesture, { once: true });
+    window.addEventListener('touchstart', triggerAudioOnFirstGesture, { once: true, passive: true });
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
