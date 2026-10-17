@@ -719,6 +719,8 @@ html, body {
   box-shadow: 
     inset 0 0 30px rgba(0, 0, 0, 0.9),
     0 12px 30px rgba(0, 0, 0, 0.7);
+  contain: paint;
+  transform: translateZ(0);
 }
 
 .theater-screen-frame video {
@@ -728,6 +730,9 @@ html, body {
   background: #010409;
   display: block;
   border-radius: 16px;
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .theater-progress-track {
