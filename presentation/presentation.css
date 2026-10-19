@@ -1725,9 +1725,22 @@ body.fullscreen-mode .floating-fs-bar {
   will-change: transform;
 }
 
-.icon-btn.active .clap-meter-dot,
+#clap-toggle-btn {
+  position: relative;
+}
+
+#clap-toggle-btn.active .clap-meter-dot {
+  display: block;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  margin-left: 0;
+}
+
 .floating-fs-btn.active .clap-meter-dot {
   display: inline-block;
+  vertical-align: middle;
+  margin-left: 6px;
 }
 
 /* ─────────────────────────────────────────────────────────────

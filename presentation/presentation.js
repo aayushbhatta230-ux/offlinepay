@@ -68,6 +68,9 @@ class SoundFx {
       osc.stop(this.ctx.currentTime + 0.3);
     } catch (e) {}
   }
+  click() {
+    this.playTone(800, 'sine', 0.05, 0.08);
+  }
 }
 
 const sfx = new SoundFx();
@@ -976,6 +979,7 @@ class PresentationApp {
     this.isClapNavActive = false;
     this.clapAudioCtx = null;
     this.clapStream = null;
+    this.clapProcessor = null;
     this.clapRafId = null;
     this.lastClapTimestamp = 0;
 
@@ -2751,9 +2755,9 @@ class PresentationApp {
   }
 
   toggleClapDetection() {
-    // 1. Mandatory for iOS Safari: Synchronously instantiate & resume AudioContext inside the user gesture call stack
+    // 1. Mandatory for iOS Safari: Synchronously instantiate & resume AudioContext inside user gesture call stack
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!this.clapAudioCtx && AudioCtx) {
+    if (!this.clapAudioCtx || this.clapAudioCtx.state === 'closed') {
       this.clapAudioCtx = new AudioCtx();
     }
     if (this.clapAudioCtx && this.clapAudioCtx.state === 'suspended') {
@@ -2781,7 +2785,7 @@ class PresentationApp {
     } else {
       const started = await this.startClapDetection();
       if (started) {
-        this.showToast('👏 Clap Nav Active — Listening (Try clapping now!)');
+        this.showToast('👏 Clap Nav Active — Listening (Clap to advance!)');
       }
     }
   }
@@ -2794,60 +2798,71 @@ class PresentationApp {
       }
 
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!this.clapAudioCtx && AudioCtx) {
+      if (!this.clapAudioCtx || this.clapAudioCtx.state === 'closed') {
         this.clapAudioCtx = new AudioCtx();
       }
       if (this.clapAudioCtx && this.clapAudioCtx.state === 'suspended') {
         await this.clapAudioCtx.resume().catch(() => {});
       }
 
-      // Universal audio constraint: { audio: true } works 100% on iOS Safari, Android, and Desktop
+      // Universal audio constraints:
+      // echoCancellation: false, noiseSuppression: false, autoGainControl: false
+      // are ESSENTIAL for iOS Safari so Apple Voice Processing does NOT suppress hand claps!
       let stream;
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch (err) {
-        console.warn('getUserMedia standard error, retrying fallback:', err);
-        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false } });
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }
+        });
+      } catch (err1) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: false }
+          });
+        } catch (err2) {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        }
       }
 
       this.clapStream = stream;
       const source = this.clapAudioCtx.createMediaStreamSource(stream);
 
-      // Pre-amplifier GainNode: 4.5x digital boost so even soft claps from across the room register strongly
+      // Pre-amplifier GainNode: 3.5x digital boost so even soft claps from across the room register strongly
       const preAmp = this.clapAudioCtx.createGain();
-      preAmp.gain.setValueAtTime(4.5, this.clapAudioCtx.currentTime);
+      preAmp.gain.setValueAtTime(3.5, this.clapAudioCtx.currentTime);
 
-      // Highpass Filter at 320 Hz:
-      // Preserves 100% of ALL clap frequencies (from hollow cupped 500Hz claps to sharp 6000Hz snaps)
-      // while filtering out sub-bass room rumbles, AC hum, and table thumps (<320Hz)
+      // Highpass Filter at 250 Hz:
+      // Preserves 100% of all clap frequencies (from hollow cupped 400Hz claps to sharp 6000Hz snaps)
+      // while filtering out sub-bass room rumbles, AC hum, and table thumps (<250Hz)
       const highPass = this.clapAudioCtx.createBiquadFilter();
       highPass.type = 'highpass';
-      highPass.frequency.setValueAtTime(320, this.clapAudioCtx.currentTime);
+      highPass.frequency.setValueAtTime(250, this.clapAudioCtx.currentTime);
       highPass.Q.setValueAtTime(0.7, this.clapAudioCtx.currentTime);
 
-      // Fast Time-Domain Analyser
-      const analyser = this.clapAudioCtx.createAnalyser();
-      analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.0;
-
-      // Pipeline: Mic Stream -> PreAmp Boost -> Highpass -> Analyser
-      source.connect(preAmp);
-      preAmp.connect(highPass);
-      highPass.connect(analyser);
+      // ScriptProcessorNode: 1024 samples (~21ms per buffer slice)
+      // Runs directly on the audio engine stream without frame-skipping or requestAnimationFrame lag.
+      const processor = this.clapAudioCtx.createScriptProcessor(1024, 1, 1);
+      this.clapProcessor = processor;
 
       // CRITICAL FOR iOS SAFARI / WEBKIT:
-      // Analyser MUST be connected to audioCtx.destination via a mute gain node!
-      // Otherwise WebKit idles the MediaStreamAudioSourceNode and returns 100% flatline silence!
-      const muteNode = this.clapAudioCtx.createGain();
-      muteNode.gain.setValueAtTime(0, this.clapAudioCtx.currentTime);
-      analyser.connect(muteNode);
-      muteNode.connect(this.clapAudioCtx.destination);
+      // Connect to destination via an inaudible gain (0.00001 = -100dB).
+      // Unlike gain=0 (which causes WebKit to prune the graph as silent),
+      // non-zero gain keeps the iOS audio hardware rendering clock continuously active!
+      const silentGain = this.clapAudioCtx.createGain();
+      silentGain.gain.setValueAtTime(0.00001, this.clapAudioCtx.currentTime);
+
+      source.connect(preAmp);
+      preAmp.connect(highPass);
+      highPass.connect(processor);
+      processor.connect(silentGain);
+      silentGain.connect(this.clapAudioCtx.destination);
 
       this.isClapNavActive = true;
       this.updateClapUI(true);
 
-      // Use Uint8Array with getByteTimeDomainData - 100% guaranteed on every iOS Safari and browser version
-      const byteData = new Uint8Array(analyser.fftSize);
       let prevPeak = 0.005;
       let prevRms = 0.005;
       let noiseFloor = 0.008;
@@ -2855,59 +2870,63 @@ class PresentationApp {
       const meterDot = document.getElementById('clap-meter-dot');
       const fsMeterDot = document.getElementById('fs-clap-meter');
 
-      const processAudio = () => {
+      processor.onaudioprocess = (e) => {
         if (!this.isClapNavActive) return;
 
-        analyser.getByteTimeDomainData(byteData);
+        const input = e.inputBuffer.getChannelData(0);
+        const len = input.length;
 
         let peak = 0;
         let sumSq = 0;
-        for (let i = 0; i < byteData.length; i++) {
-          // In byte domain: 0..255 with 128 as silence. Normalize to [-1.0, 1.0]
-          const val = Math.abs((byteData[i] - 128) / 128.0);
+        for (let i = 0; i < len; i++) {
+          const val = Math.abs(input[i]);
           if (val > peak) peak = val;
           sumSq += val * val;
         }
-        const rms = Math.sqrt(sumSq / byteData.length);
+        const rms = Math.sqrt(sumSq / len);
 
-        // Real-time audio meter animation (gives immediate visual feedback of mic listening on iOS & desktop)
+        // Real-time audio meter animation (live visual proof of mic listening on iOS & desktop)
         if (meterDot || fsMeterDot) {
-          const visualScale = Math.min(2.8, Math.max(0.6, 0.6 + rms * 15));
+          const visualScale = Math.min(2.8, Math.max(0.6, 0.6 + rms * 18));
           const dotTransform = `scale(${visualScale})`;
           if (meterDot) meterDot.style.transform = dotTransform;
           if (fsMeterDot) fsMeterDot.style.transform = dotTransform;
         }
 
         // Slowly track ambient background room floor (smooth exponential average)
-        noiseFloor = noiseFloor * 0.98 + rms * 0.02;
+        noiseFloor = noiseFloor * 0.95 + rms * 0.05;
 
         const now = performance.now();
-        const cooldown = 900; // 900ms debounce prevents double triggers
+        const cooldown = 750; // 750ms debounce prevents double slide skips
         const cooldownPassed = (now - this.lastClapTimestamp) > cooldown;
 
         // Instantaneous Transient Calculation:
-        // Claps cause an abrupt, instantaneous step spike in peak amplitude and RMS within < 15ms
+        // Claps cause an abrupt, instantaneous step spike in peak amplitude and high crest factor
         const deltaPeak = peak - prevPeak;
-        const deltaRms = rms - prevRms;
-        const jumpRatio = rms / (noiseFloor + 0.0005);
+        const crestFactor = peak / (rms + 0.0001);
+        const jumpRatio = rms / (noiseFloor + 0.0001);
 
-        // Hyper-sensitive clap impulse criteria:
-        // 1. Any distinct impulse spike: peak > 0.09
-        // 2. OR a sudden jump above previous frame: deltaPeak > 0.018 && peak > 0.038
-        // 3. OR sudden energy surge above ambient room floor: jumpRatio > 1.65 && peak > 0.035
-        const isClap = (peak > 0.09) || (deltaPeak > 0.018 && peak > 0.038) || (jumpRatio > 1.65 && peak > 0.035);
+        // Sensitive clap impulse criteria (catches soft, cupped, regular, and sharp claps):
+        // 1. Any sharp transient jump: deltaPeak > 0.045 && peak > 0.08
+        // 2. High impulsive crest factor: crestFactor > 2.4 && peak > 0.09
+        // 3. Energy surge above ambient floor: jumpRatio > 2.0 && peak > 0.075
+        // 4. Strong impulse peak: peak > 0.20
+        const isClap = (
+          (deltaPeak > 0.045 && peak > 0.08) ||
+          (crestFactor > 2.4 && peak > 0.09) ||
+          (jumpRatio > 2.0 && peak > 0.075) ||
+          (peak > 0.20)
+        );
 
         if (cooldownPassed && isClap) {
           this.lastClapTimestamp = now;
-          this.onClapDetected();
+          this.onClapDetected(peak);
         }
 
         prevPeak = peak;
         prevRms = rms;
-        this.clapRafId = requestAnimationFrame(processAudio);
       };
 
-      this.clapRafId = requestAnimationFrame(processAudio);
       return true;
 
     } catch (err) {
@@ -2921,9 +2940,10 @@ class PresentationApp {
 
   stopClapDetection() {
     this.isClapNavActive = false;
-    if (this.clapRafId) {
-      cancelAnimationFrame(this.clapRafId);
-      this.clapRafId = null;
+    if (this.clapProcessor) {
+      this.clapProcessor.onaudioprocess = null;
+      try { this.clapProcessor.disconnect(); } catch (_) {}
+      this.clapProcessor = null;
     }
     if (this.clapStream) {
       this.clapStream.getTracks().forEach(t => t.stop());
@@ -2952,35 +2972,43 @@ class PresentationApp {
     }
   }
 
-  onClapDetected() {
-    sfx.click();
-    this.showToast('👏 Clap Detected! ➔ Next Slide');
-
-    const clapBtn = document.getElementById('clap-toggle-btn');
-    const fsClapBtn = document.getElementById('fs-clap-btn');
-    const meterDot = document.getElementById('clap-meter-dot');
-    const fsMeterDot = document.getElementById('fs-clap-meter');
-
-    [clapBtn, fsClapBtn].forEach(btn => {
-      if (btn) {
-        btn.classList.add('clap-pulse');
-        setTimeout(() => btn.classList.remove('clap-pulse'), 550);
+  onClapDetected(level = 0) {
+    try {
+      if (typeof sfx !== 'undefined' && sfx.slideChange) {
+        sfx.slideChange();
       }
-    });
+    } catch (_) {}
 
-    [meterDot, fsMeterDot].forEach(dot => {
-      if (dot) {
-        dot.style.background = '#00f0ff';
-        dot.style.boxShadow = '0 0 16px #00f0ff';
-        dot.style.transform = 'scale(3)';
-        setTimeout(() => {
-          if (dot) {
-            dot.style.background = '#10b981';
-            dot.style.boxShadow = '0 0 10px #10b981';
-          }
-        }, 400);
-      }
-    });
+    const pct = Math.round(level * 100);
+    this.showToast(`👏 Clap Registered! (${pct}%) ➔ Next Slide`);
+
+    try {
+      const clapBtn = document.getElementById('clap-toggle-btn');
+      const fsClapBtn = document.getElementById('fs-clap-btn');
+      const meterDot = document.getElementById('clap-meter-dot');
+      const fsMeterDot = document.getElementById('fs-clap-meter');
+
+      [clapBtn, fsClapBtn].forEach(btn => {
+        if (btn) {
+          btn.classList.add('clap-pulse');
+          setTimeout(() => btn.classList.remove('clap-pulse'), 550);
+        }
+      });
+
+      [meterDot, fsMeterDot].forEach(dot => {
+        if (dot) {
+          dot.style.background = '#00f0ff';
+          dot.style.boxShadow = '0 0 16px #00f0ff';
+          dot.style.transform = 'scale(3)';
+          setTimeout(() => {
+            if (dot) {
+              dot.style.background = '#10b981';
+              dot.style.boxShadow = '0 0 10px #10b981';
+            }
+          }, 400);
+        }
+      });
+    } catch (_) {}
 
     // Advance to next slide unconditionally!
     this.nextSlide();
