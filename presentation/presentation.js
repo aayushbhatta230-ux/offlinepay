@@ -2892,11 +2892,12 @@ class PresentationApp {
         const jumpRatio = rms / (noiseFloor + 0.0005);
 
         // Hyper-sensitive clap impulse criteria:
-        // Catches even soft/small claps while ignoring steady talking vowels
-        const isTransientSpike = (deltaPeak > 0.025) || (deltaRms > 0.010) || (jumpRatio > 1.8 && peak > 0.04);
-        const hasMinimumClapEnergy = peak > 0.04;
+        // 1. Any distinct impulse spike: peak > 0.09
+        // 2. OR a sudden jump above previous frame: deltaPeak > 0.018 && peak > 0.038
+        // 3. OR sudden energy surge above ambient room floor: jumpRatio > 1.65 && peak > 0.035
+        const isClap = (peak > 0.09) || (deltaPeak > 0.018 && peak > 0.038) || (jumpRatio > 1.65 && peak > 0.035);
 
-        if (cooldownPassed && hasMinimumClapEnergy && isTransientSpike) {
+        if (cooldownPassed && isClap) {
           this.lastClapTimestamp = now;
           this.onClapDetected();
         }
@@ -2981,14 +2982,7 @@ class PresentationApp {
       }
     });
 
-    // If on Slide 1 and problem video is paused / overlay visible, start video with sound
-    const vid = document.getElementById('problem-live-video');
-    const overlay = document.getElementById('problem-start-overlay');
-    if (this.currentSlideIndex === 0 && vid && (vid.paused || (overlay && !overlay.classList.contains('hidden')))) {
-      this.startProblemVideoWithSound();
-      return;
-    }
-
+    // Advance to next slide unconditionally!
     this.nextSlide();
   }
 
