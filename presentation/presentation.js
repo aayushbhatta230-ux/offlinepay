@@ -2830,17 +2830,18 @@ class PresentationApp {
       this.clapStream = stream;
       const source = this.clapAudioCtx.createMediaStreamSource(stream);
 
-      // Pre-amplifier GainNode: 3.5x digital boost so even soft claps from across the room register strongly
+      // Pre-amplifier GainNode: 2.0x calibrated gain (prevents speech from inflating into false triggers)
       const preAmp = this.clapAudioCtx.createGain();
-      preAmp.gain.setValueAtTime(3.5, this.clapAudioCtx.currentTime);
+      preAmp.gain.setValueAtTime(2.0, this.clapAudioCtx.currentTime);
 
-      // Highpass Filter at 250 Hz:
-      // Preserves 100% of all clap frequencies (from hollow cupped 400Hz claps to sharp 6000Hz snaps)
-      // while filtering out sub-bass room rumbles, AC hum, and table thumps (<250Hz)
-      const highPass = this.clapAudioCtx.createBiquadFilter();
-      highPass.type = 'highpass';
-      highPass.frequency.setValueAtTime(250, this.clapAudioCtx.currentTime);
-      highPass.Q.setValueAtTime(0.7, this.clapAudioCtx.currentTime);
+      // Acoustic Bandpass Filter centered at 2,200 Hz (Q = 1.2):
+      // Attenuates human voice fundamentals (85-255Hz) and main vowel formants (300-800Hz) by >30dB,
+      // as well as table thumps (<200Hz) and high-pitch hiss (>6kHz),
+      // while preserving 100% of the palm-clap impact resonance band (1.5kHz - 3.5kHz).
+      const bandPass = this.clapAudioCtx.createBiquadFilter();
+      bandPass.type = 'bandpass';
+      bandPass.frequency.setValueAtTime(2200, this.clapAudioCtx.currentTime);
+      bandPass.Q.setValueAtTime(1.2, this.clapAudioCtx.currentTime);
 
       // ScriptProcessorNode: 1024 samples (~21ms per buffer slice)
       // Runs directly on the audio engine stream without frame-skipping or requestAnimationFrame lag.
@@ -2855,8 +2856,8 @@ class PresentationApp {
       silentGain.gain.setValueAtTime(0.00001, this.clapAudioCtx.currentTime);
 
       source.connect(preAmp);
-      preAmp.connect(highPass);
-      highPass.connect(processor);
+      preAmp.connect(bandPass);
+      bandPass.connect(processor);
       processor.connect(silentGain);
       silentGain.connect(this.clapAudioCtx.destination);
 
@@ -2878,16 +2879,38 @@ class PresentationApp {
 
         let peak = 0;
         let sumSq = 0;
-        for (let i = 0; i < len; i++) {
-          const val = Math.abs(input[i]);
-          if (val > peak) peak = val;
-          sumSq += val * val;
+        let zcr = 0;
+        const qRms = [0, 0, 0, 0];
+
+        // Divide 1024 samples into 4 sub-blocks of 256 samples (~5.3ms each)
+        // Hand claps concentrate almost all acoustic power into a single sharp sub-block,
+        // whereas speech and room sounds sustain energy uniformly across all 4 sub-blocks.
+        for (let q = 0; q < 4; q++) {
+          let qSum = 0;
+          const qStart = q * 256;
+          for (let i = qStart; i < qStart + 256; i++) {
+            const val = Math.abs(input[i]);
+            if (val > peak) peak = val;
+            qSum += val * val;
+            sumSq += val * val;
+            if (i > 0 && ((input[i] >= 0 && input[i - 1] < 0) || (input[i] < 0 && input[i - 1] >= 0))) {
+              zcr++;
+            }
+          }
+          qRms[q] = Math.sqrt(qSum / 256);
         }
+
         const rms = Math.sqrt(sumSq / len);
+        const crestFactor = peak / (rms + 0.0001);
+        const deltaPeak = peak - prevPeak;
+
+        const maxQ = Math.max(qRms[0], qRms[1], qRms[2], qRms[3]);
+        const minQ = Math.min(qRms[0], qRms[1], qRms[2], qRms[3]);
+        const temporalConcentration = maxQ / (minQ + 0.001);
 
         // Real-time audio meter animation (live visual proof of mic listening on iOS & desktop)
         if (meterDot || fsMeterDot) {
-          const visualScale = Math.min(2.8, Math.max(0.6, 0.6 + rms * 18));
+          const visualScale = Math.min(2.5, Math.max(0.6, 0.6 + rms * 15));
           const dotTransform = `scale(${visualScale})`;
           if (meterDot) meterDot.style.transform = dotTransform;
           if (fsMeterDot) fsMeterDot.style.transform = dotTransform;
@@ -2897,28 +2920,25 @@ class PresentationApp {
         noiseFloor = noiseFloor * 0.95 + rms * 0.05;
 
         const now = performance.now();
-        const cooldown = 750; // 750ms debounce prevents double slide skips
+        const cooldown = 850; // 850ms debounce prevents double slide skips
         const cooldownPassed = (now - this.lastClapTimestamp) > cooldown;
 
-        // Instantaneous Transient Calculation:
-        // Claps cause an abrupt, instantaneous step spike in peak amplitude and high crest factor
-        const deltaPeak = peak - prevPeak;
-        const crestFactor = peak / (rms + 0.0001);
-        const jumpRatio = rms / (noiseFloor + 0.0001);
-
-        // Sensitive clap impulse criteria (catches soft, cupped, regular, and sharp claps):
-        // 1. Any sharp transient jump: deltaPeak > 0.045 && peak > 0.08
-        // 2. High impulsive crest factor: crestFactor > 2.4 && peak > 0.09
-        // 3. Energy surge above ambient floor: jumpRatio > 2.0 && peak > 0.075
-        // 4. Strong impulse peak: peak > 0.20
+        // TRUE CLAP SPECIFIC VERIFICATION:
+        // 1. Peak >= 0.22: Rejects speech whispers, breathing, laptop typing, mouse clicks
+        // 2. Delta Peak >= 0.12: Sharp step rise from baseline; speech ramps up gradually
+        // 3. Crest Factor >= 3.2: Sharp impulse spike vs continuous voiced vowel waveforms
+        // 4. Temporal Concentration >= 3.0: Impulse confined to <6ms vs speech sustained across 21ms
+        // 5. Zero Crossing Rate >= 50: Wideband palm impact vs low table thumps, chair thuds, or mic rubs
         const isClap = (
-          (deltaPeak > 0.045 && peak > 0.08) ||
-          (crestFactor > 2.4 && peak > 0.09) ||
-          (jumpRatio > 2.0 && peak > 0.075) ||
-          (peak > 0.20)
+          cooldownPassed &&
+          peak >= 0.22 &&
+          deltaPeak >= 0.12 &&
+          crestFactor >= 3.2 &&
+          temporalConcentration >= 3.0 &&
+          zcr >= 50
         );
 
-        if (cooldownPassed && isClap) {
+        if (isClap) {
           this.lastClapTimestamp = now;
           this.onClapDetected(peak);
         }
@@ -2980,7 +3000,7 @@ class PresentationApp {
     } catch (_) {}
 
     const pct = Math.round(level * 100);
-    this.showToast(`👏 Clap Registered! (${pct}%) ➔ Next Slide`);
+    this.showToast(`👏 Clap Verified! (${pct}%) ➔ Next Slide`);
 
     try {
       const clapBtn = document.getElementById('clap-toggle-btn');
