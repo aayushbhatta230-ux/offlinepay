@@ -438,6 +438,89 @@ function createQRStandeeTexture() {
 }
 
 // Slide 8: Verified Prototype Checkmark Screen for Finale
+// Slide 7: Revenue Model HUD & Stream Textures
+function createRevenueHUDTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  const bg = ctx.createLinearGradient(0, 0, 1024, 512);
+  bg.addColorStop(0, '#04271c');
+  bg.addColorStop(0.5, '#061a29');
+  bg.addColorStop(1, '#020617');
+  ctx.fillStyle = bg;
+  ctx.beginPath();
+  ctx.roundRect(16, 16, 992, 480, 36);
+  ctx.fill();
+
+  ctx.strokeStyle = '#10b981';
+  ctx.lineWidth = 10;
+  ctx.stroke();
+
+  ctx.fillStyle = '#34d399';
+  ctx.font = 'bold 38px monospace';
+  ctx.fillText('💰 OFFLINEPAY MONETIZATION MATRIX', 60, 80);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 56px sans-serif';
+  ctx.fillText('3 Sustainable Revenue Streams', 60, 160);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = '34px monospace';
+  ctx.fillText('• Stream 1: Wallet Recovery Splits (Rs. 0.10–0.25 / Txn)', 60, 235);
+  ctx.fillText('• Stream 2: High-Volume Merchant Subs (Rs. 200–500 / Mo)', 60, 300);
+  ctx.fillText('• Stream 3: Commercial Bank SDK Annual Software License', 60, 365);
+
+  ctx.fillStyle = '#facc15';
+  ctx.font = 'bold 36px monospace';
+  ctx.fillText('✔ 85%+ GROSS PROFIT MARGIN • ZERO SERVER AT CHECKOUT', 60, 440);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 8;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function createRevenueStreamTexture(streamNum, title, rate, subtitle, colorHex) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#091220';
+  ctx.beginPath();
+  ctx.roundRect(8, 8, 496, 240, 24);
+  ctx.fill();
+
+  ctx.strokeStyle = colorHex;
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  ctx.fillStyle = colorHex;
+  ctx.font = 'bold 26px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(streamNum + ': ' + title, 256, 55);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 44px sans-serif';
+  ctx.fillText(rate, 256, 125);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '24px sans-serif';
+  ctx.fillText(subtitle, 256, 175);
+
+  ctx.fillStyle = '#34d399';
+  ctx.font = 'bold 20px monospace';
+  ctx.fillText('● HIGH MARGIN • SCALABLE', 256, 215);
+  ctx.textAlign = 'start';
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 8;
+  tex.needsUpdate = true;
+  return tex;
+}
+
 function createCheckmarkScreenTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 1024;
@@ -915,26 +998,27 @@ const SLIDES = [
     }
   },
 
-  // ── Slide 7: Vision & The Ask ────────────────────────────
+  // ── Slide 7: Revenue Model ─────────────────────────────────
   {
-    id: 'vision',
-    kicker: 'Slide 7 • Vision & The Ask',
+    id: 'revenue',
+    kicker: 'Slide 7 • Revenue Model',
     kickerType: 'normal',
-    title: 'Cashless Everywhere, <span class="highlight-green">For Everyone</span>',
-    subtitle: 'From campus pilot to nationwide offline infrastructure',
+    title: 'How OfflinePay <span class="highlight-green">Generates Revenue</span>',
+    subtitle: '3 High-margin monetization streams with zero consumer friction',
     bullets: [
-      { icon: '🏫', text: 'Phase 1 Campus Pilot: Launching across Trinity cafeteria, student stationery & college bus transit', glow: 'glow-green' },
-      { icon: '🧪', text: 'Phase 2 Fintech Sandboxing: Controlled testing with eSewa & Khalti developer sandbox APIs', glow: 'glow-cyan' },
-      { icon: '🤝', text: 'The Ask: Pilot trial partnerships, fintech mentorship, and guidance from industry leaders', glow: 'glow-green' }
+      { icon: '💸', text: 'Stream 1: Digital Wallet Splits (eSewa & Khalti) — Rs. 0.10–0.25 micro-fee on recovered offline transactions', glow: 'glow-green' },
+      { icon: '🏪', text: 'Stream 2: Merchant Subscriptions — Rs. 200–500/month for high-volume offline vendors (buses, canteens, toll booths)', glow: 'glow-cyan' },
+      { icon: '🏦', text: 'Stream 3: B2B SDK Licensing — Annual software license and maintenance for commercial banking apps', glow: 'glow-green' }
     ],
-    actionBtn: { text: '🚀 Launch Pilot [Space]', fn: 'launchPilot' },
+    actionBtn: { text: '💰 Ignite Revenue Streams [Space]', fn: 'igniteRevenue' },
     prompter: {
-      pitchScript: `"Our vision is a future where money works wherever people do—whether in a basement bookstore, a crowded bus, or during a storm. We are starting Phase 1 right here on our Trinity campus, testing offline payments in the cafeteria and college buses. Our ask today is pilot trial partnerships and fintech mentorship to bring offline resilience to everyday payments. Thank you!"`,
-      technicalHighlight: `Our prototype is already working on Android and iOS web browsers using standard WebCrypto APIs. We are ready to take it from the lab to our campus testbed.`,
-      demoCue: `Point to the 3D verified prototype checkmark screen showing 'PROTOTYPE VERIFIED • READY FOR PILOT'.`,
+      pitchScript: `"How does OfflinePay turn offline resilience into a scalable business? We operate across three clear revenue streams: First, Digital Wallet Splits with giants like eSewa and Khalti—earning a Rs. 0.10 to 0.25 micro-fee on every recovered transaction that would have otherwise failed. Second, Merchant Subscriptions—Rs. 200 to 500 per month for high-volume offline transit buses, highway toll booths, and busy campus canteens who need automated offline reconciliation. And third, B2B SDK Licensing—annual enterprise licensing and compliance maintenance for commercial banking apps. Everyday consumers pay zero extra, wallet partners unlock revenue they currently lose, and our zero-server-at-checkout architecture delivers 85%+ gross profit margins."`,
+      technicalHighlight: `Because offline cryptography happens locally on the customer's and merchant's hardware, our centralized server costs are near zero during transaction execution. We only process batch-settlement syncs, resulting in exceptional software unit economics.`,
+      demoCue: `Point to the 3D Revenue Engine visual showing the 3 distinct monetization pillars (Wallet Splits, Subscriptions, Bank SDKs) and streaming currency tokens.`,
       anticipatedQA: [
-        { q: 'What if the user has insufficient funds?', a: 'The offline vault is pre-reserved from their online wallet balance beforehand. You can never spend more than the pre-allocated vault amount, ensuring zero overdraft risk.' },
-        { q: 'Why won\'t big wallets build it themselves?', a: 'Specialized offline cryptographic engineering takes dedicated security auditing. Wallets prefer integrating a proven, non-custodial SDK rather than diverting engineering from core business operations.' }
+        { q: 'Why would eSewa or Khalti willingly share micro-fees with OfflinePay?', a: 'Because without OfflinePay, an offline timeout yields them exactly zero revenue—and often causes the user to pay in physical paper cash instead. Sharing Rs. 0.10 to 0.25 on a recovered transaction turns a 100% loss into guaranteed revenue and retains active daily users.' },
+        { q: 'Will small mom-and-pop vendors be forced to pay subscriptions?', a: 'No! Basic mom-and-pop stores use the free tier through their wallet app. The Rs. 200–500/month subscription is exclusively for high-volume enterprise fleets like municipal bus companies, highway tolls, and busy canteens needing dedicated batch-settlement portals and priority reconciliation.' },
+        { q: 'What is the gross margin structure?', a: 'Over 85%. Because cryptographic verification runs locally on client hardware (cameras and WebCrypto chips), our backend infrastructure cost per transaction is negligible compared to traditional payment gateways.' }
       ]
     }
   }
@@ -1117,6 +1201,7 @@ class PresentationApp {
     this.allSceneGroups['business'] = gBusiness;
     this.allSceneGroups['comparison'] = gBenefits;
     this.allSceneGroups['benefits'] = gBenefits;
+    this.allSceneGroups['revenue'] = gConclusion;
     this.allSceneGroups['vision'] = gConclusion;
     this.allSceneGroups['conclusion'] = gConclusion;
     this.allSceneGroups['idea'] = gIdea;
@@ -2016,90 +2101,161 @@ class PresentationApp {
     g6.userData = { impactGroup, aegisShield, ekgTube, crossH, crossV, forceDome, forceRing1, forceRing2, disasterHUD, satDish };
 
     // ─────────────────────────────────────────────────────────────
-    // Slide 7: Conclusion (Trophy Smartphone with Verified Checkmark & 3D Rocket)
+    // Slide 7: Revenue Model Engine (3 Streams, Golden Vault & Bank SDK Core)
     // ─────────────────────────────────────────────────────────────
     const g7 = gConclusion;
-    const finaleGroup = new THREE.Group();
-    finaleGroup.position.set(0, -0.05, 0);
-    g7.add(finaleGroup);
+    const revenueGroup = new THREE.Group();
+    revenueGroup.position.set(0, -0.05, 0);
+    g7.add(revenueGroup);
 
-    // 1. Trophy Smartphone
-    const phoneTrophy = new THREE.Mesh(
-      new THREE.BoxGeometry(1.35, 2.7, 0.16),
-      new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.15 })
+    // 1. Cyber-Financial Matrix Platform Base
+    const revBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.7, 2.7, 0.22, 48),
+      new THREE.MeshStandardMaterial({ color: 0x0a101d, roughness: 0.3, metalness: 0.6 })
     );
-    phoneTrophy.position.set(-0.65, 0, 0);
-    phoneTrophy.rotation.y = 0.22;
-    finaleGroup.add(phoneTrophy);
-    addNeonEdges(phoneTrophy, 0x10b981, 3);
+    revBase.position.y = -1.15;
+    revenueGroup.add(revBase);
+    addNeonEdges(revBase, 0x10b981, 2);
 
-    // Screen with Giant Verified Checkmark (Dual-Sided: Front & Back)
-    const checkScreen = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.25, 2.56),
-      new THREE.MeshBasicMaterial({ map: createCheckmarkScreenTexture() })
+    // Floating Revenue HUD Billboard on base
+    const revenueHUD = new THREE.Mesh(
+      new THREE.BoxGeometry(2.2, 1.05, 0.06),
+      new THREE.MeshBasicMaterial({ map: createRevenueHUDTexture() })
     );
-    checkScreen.position.z = 0.082;
-    phoneTrophy.add(checkScreen);
+    revenueHUD.position.set(0, 1.48, -0.6);
+    revenueGroup.add(revenueHUD);
+    addNeonEdges(revenueHUD, 0x10b981, 2);
 
-    const checkScreenBack = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.25, 2.56),
-      new THREE.MeshBasicMaterial({ map: createCheckmarkScreenTexture() })
+    // 3 Distinct Monetization Stream Pillars
+    const streamPillars = [];
+
+    // --- Stream 1 (Left): Digital Wallet Split (eSewa / Khalti) ---
+    const s1Group = new THREE.Group();
+    s1Group.position.set(-1.40, -1.05, 0.1);
+    revenueGroup.add(s1Group);
+
+    const s1Pillar = new THREE.Mesh(
+      new THREE.BoxGeometry(0.85, 0.95, 0.85),
+      new THREE.MeshStandardMaterial({ color: 0x042f2e, emissive: 0x059669, emissiveIntensity: 0.5, metalness: 0.7, roughness: 0.2 })
     );
-    checkScreenBack.position.z = -0.082;
-    checkScreenBack.rotation.y = Math.PI;
-    phoneTrophy.add(checkScreenBack);
+    s1Pillar.position.y = 0.95 / 2;
+    s1Group.add(s1Pillar);
+    addNeonEdges(s1Pillar, 0x34d399, 2);
+    streamPillars.push(s1Pillar);
 
-    // 2. 3D Launch Rocket (Aerospace Arrow to Future)
-    const rocketGroup = new THREE.Group();
-    rocketGroup.position.set(0.9, 0.2, 0);
-    finaleGroup.add(rocketGroup);
-
-    // Rocket Fuselage (White/Cyan Ceramic)
-    const fuselage = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.24, 0.28, 1.8, 24),
-      new THREE.MeshStandardMaterial({ color: 0xf8fafc, metalness: 0.3, roughness: 0.2 })
+    const s1Badge = new THREE.Mesh(
+      new THREE.BoxGeometry(0.95, 0.48, 0.04),
+      new THREE.MeshBasicMaterial({ map: createRevenueStreamTexture('STREAM 1', 'WALLET SPLITS', 'Rs 0.10–0.25', 'eSewa & Khalti Split', '#34d399') })
     );
-    rocketGroup.add(fuselage);
-    addNeonEdges(fuselage, 0x00f0ff, 2);
+    s1Badge.position.set(0, 1.40, 0);
+    s1Group.add(s1Badge);
 
-    // Conical Rocket Nose Cone
-    const noseCone = new THREE.Mesh(
-      new THREE.ConeGeometry(0.24, 0.65, 24),
-      new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x059669, emissiveIntensity: 0.8 })
+    // Dual Split Token Orbs (eSewa Green & Khalti Purple)
+    const splitOrbs = [];
+    const orb1 = new THREE.Mesh(new THREE.SphereGeometry(0.16, 20, 20), new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x059669, emissiveIntensity: 0.9 }));
+    orb1.position.set(-0.25, 0.75, 0);
+    s1Group.add(orb1);
+    splitOrbs.push(orb1);
+
+    const orb2 = new THREE.Mesh(new THREE.SphereGeometry(0.16, 20, 20), new THREE.MeshStandardMaterial({ color: 0xa855f7, emissive: 0x7e22ce, emissiveIntensity: 0.9 }));
+    orb2.position.set(0.25, 0.75, 0);
+    s1Group.add(orb2);
+    splitOrbs.push(orb2);
+
+    const splitLink = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.5, 12), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
+    splitLink.rotation.z = Math.PI / 2;
+    splitLink.position.set(0, 0.75, 0);
+    s1Group.add(splitLink);
+
+    // --- Stream 2 (Center, Apex): High-Volume Merchant Subscription Vault ---
+    const s2Group = new THREE.Group();
+    s2Group.position.set(0, -1.05, 0.35);
+    revenueGroup.add(s2Group);
+
+    const s2Pillar = new THREE.Mesh(
+      new THREE.BoxGeometry(1.05, 1.35, 1.05),
+      new THREE.MeshStandardMaterial({ color: 0x1e1b4b, emissive: 0x312e81, emissiveIntensity: 0.5, metalness: 0.8, roughness: 0.2 })
     );
-    noseCone.position.y = 1.22;
-    rocketGroup.add(noseCone);
-    addNeonEdges(noseCone, 0xffffff, 2);
+    s2Pillar.position.y = 1.35 / 2;
+    s2Group.add(s2Pillar);
+    addNeonEdges(s2Pillar, 0xfbbf24, 2);
+    streamPillars.push(s2Pillar);
 
-    // 3 Aerodynamic Fins
-    const finGeom = new THREE.BoxGeometry(0.04, 0.55, 0.38);
-    const finMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x0284c7, emissiveIntensity: 0.6 });
-    [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3].forEach(ang => {
-      const fin = new THREE.Mesh(finGeom, finMat);
-      fin.position.set(Math.cos(ang) * 0.35, -0.65, Math.sin(ang) * 0.35);
-      fin.rotation.y = -ang;
-      rocketGroup.add(fin);
-    });
-
-    // Glowing Ion Thruster Flame Cone
-    const flame = new THREE.Mesh(
-      new THREE.ConeGeometry(0.22, 0.75, 16),
-      new THREE.MeshBasicMaterial({ color: 0xffa500 })
+    const goldVault = new THREE.Mesh(
+      new THREE.BoxGeometry(0.68, 0.68, 0.68),
+      new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xb45309, emissiveIntensity: 0.4, metalness: 0.95, roughness: 0.15 })
     );
-    flame.position.y = -1.25;
-    flame.rotation.x = Math.PI;
-    rocketGroup.add(flame);
+    goldVault.position.set(0, 1.85, 0);
+    s2Group.add(goldVault);
+    addNeonEdges(goldVault, 0xffffff, 2);
 
-    // Celebratory Golden Halo Rings
-    const halo1 = new THREE.Mesh(new THREE.TorusGeometry(2.1, 0.04, 16, 64), new THREE.MeshBasicMaterial({ color: 0xfbbf24 }));
-    halo1.rotation.x = Math.PI / 3;
-    finaleGroup.add(halo1);
+    const vaultDial = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.18, 0.08, 24),
+      new THREE.MeshStandardMaterial({ color: 0xfef08a, metalness: 0.9, roughness: 0.1 })
+    );
+    vaultDial.rotation.x = Math.PI / 2;
+    vaultDial.position.set(0, 1.85, 0.38);
+    s2Group.add(vaultDial);
 
-    const halo2 = new THREE.Mesh(new THREE.TorusGeometry(2.3, 0.03, 16, 64), new THREE.MeshBasicMaterial({ color: 0x10b981 }));
-    halo2.rotation.y = Math.PI / 4;
-    finaleGroup.add(halo2);
+    const s2Badge = new THREE.Mesh(
+      new THREE.BoxGeometry(1.05, 0.50, 0.04),
+      new THREE.MeshBasicMaterial({ map: createRevenueStreamTexture('STREAM 2', 'MERCHANT SUBS', 'Rs 200–500/Mo', 'Buses, Canteens, Tolls', '#fbbf24') })
+    );
+    s2Badge.position.set(0, 2.45, 0);
+    s2Group.add(s2Badge);
 
-    g7.userData = { finaleGroup, phoneTrophy, rocketGroup, flame, halo1, halo2 };
+    // --- Stream 3 (Right): Commercial Bank Enterprise B2B SDK Core ---
+    const s3Group = new THREE.Group();
+    s3Group.position.set(1.40, -1.05, 0.1);
+    revenueGroup.add(s3Group);
+
+    const s3Pillar = new THREE.Mesh(
+      new THREE.BoxGeometry(0.85, 1.05, 0.85),
+      new THREE.MeshStandardMaterial({ color: 0x0c2738, emissive: 0x0369a1, emissiveIntensity: 0.5, metalness: 0.7, roughness: 0.2 })
+    );
+    s3Pillar.position.y = 1.05 / 2;
+    s3Group.add(s3Pillar);
+    addNeonEdges(s3Pillar, 0x38bdf8, 2);
+    streamPillars.push(s3Pillar);
+
+    const s3Badge = new THREE.Mesh(
+      new THREE.BoxGeometry(0.95, 0.48, 0.04),
+      new THREE.MeshBasicMaterial({ map: createRevenueStreamTexture('STREAM 3', 'BANK B2B SDK', 'Annual License', 'Commercial Banking App', '#38bdf8') })
+    );
+    s3Badge.position.set(0, 1.50, 0);
+    s3Group.add(s3Badge);
+
+    const bankShield = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.24, 0),
+      new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.8, metalness: 0.9 })
+    );
+    bankShield.position.set(0, 0.85, 0);
+    s3Group.add(bankShield);
+    addNeonEdges(bankShield, 0xffffff, 2);
+
+    // 8 Orbiting 24K Gold Coins across the Revenue Engine
+    const revGoldCoins = [];
+    const revCoinGeom = new THREE.CylinderGeometry(0.18, 0.18, 0.05, 24);
+    const revCoinMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.95, roughness: 0.15, emissive: 0x78350f, emissiveIntensity: 0.3 });
+
+    for (let c = 0; c < 8; c++) {
+      const coin = new THREE.Mesh(revCoinGeom, revCoinMat);
+      coin.position.set(0, 0, 0);
+      revenueGroup.add(coin);
+      addNeonEdges(coin, 0xfef08a, 1);
+      revGoldCoins.push(coin);
+    }
+
+    // Celebratory Golden & Emerald Halo Rings
+    const revHalo1 = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.035, 16, 64), new THREE.MeshBasicMaterial({ color: 0xfbbf24 }));
+    revHalo1.rotation.x = Math.PI / 3;
+    revenueGroup.add(revHalo1);
+
+    const revHalo2 = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.03, 16, 64), new THREE.MeshBasicMaterial({ color: 0x10b981 }));
+    revHalo2.rotation.y = Math.PI / 4;
+    revenueGroup.add(revHalo2);
+
+    g7.userData = { revenueGroup, goldVault, vaultDial, bankShield, splitOrbs, pillars: streamPillars, goldCoins: revGoldCoins, halo1: revHalo1, halo2: revHalo2 };
   }
 
   goToSlide(index) {
@@ -2703,20 +2859,37 @@ class PresentationApp {
     }
   }
 
-  launchPilot() {
+  igniteRevenue() {
     sfx.verifySuccess();
-    this.showToast('🚀 Trinity Campus Pilot Ready: Verified & Ready for Partnerships');
+    this.showToast('💰 Revenue Engine Activated: 3 Streams Synced (85%+ Margin)');
     const grp = this.slideObjects[6]?.userData;
     if (grp) {
-      if (grp.rocketGroup) {
-        grp.rocketGroup.position.y += 0.6;
-        setTimeout(() => grp.rocketGroup.position.y -= 0.6, 500);
+      if (grp.goldVault) {
+        grp.goldVault.scale.set(1.4, 1.4, 1.4);
+        setTimeout(() => grp.goldVault.scale.set(1.0, 1.0, 1.0), 350);
       }
-      if (grp.flame) {
-        grp.flame.scale.set(1.8, 2.5, 1.8);
-        setTimeout(() => grp.flame.scale.set(1.0, 1.0, 1.0), 500);
+      if (grp.vaultDial) {
+        grp.vaultDial.rotation.z += Math.PI * 4;
+      }
+      if (grp.pillars) {
+        grp.pillars.forEach((p, idx) => {
+          setTimeout(() => {
+            p.scale.y = 1.35;
+            setTimeout(() => p.scale.y = 1.0, 250);
+          }, idx * 100);
+        });
+      }
+      if (grp.goldCoins) {
+        grp.goldCoins.forEach((c) => {
+          c.scale.set(1.5, 1.5, 1.5);
+          setTimeout(() => c.scale.set(1.0, 1.0, 1.0), 300);
+        });
       }
     }
+  }
+
+  launchPilot() {
+    this.igniteRevenue();
   }
 
   togglePrompter() {
@@ -3100,6 +3273,8 @@ class PresentationApp {
       case 'comparison':
       case 'benefits':
         return 0.80;
+      case 'revenue':
+      case 'revenue':
       case 'vision':
       case 'conclusion':
         return 0.84;
@@ -3568,23 +3743,43 @@ class PresentationApp {
         if (grp.userData.forceRing1) grp.userData.forceRing1.rotation.z = time * 1.0;
         if (grp.userData.forceRing2) grp.userData.forceRing2.rotation.z = -time * 0.8;
       }
+      else if (grp.userData.revenueGroup) {
+        grp.userData.revenueGroup.rotation.y = time * 0.35;
+        grp.userData.revenueGroup.rotation.x = Math.sin(time * 0.5) * 0.04;
+        grp.userData.revenueGroup.position.y = -0.10 + Math.sin(time * 1.5) * 0.04;
+
+        if (grp.userData.goldVault) {
+          grp.userData.goldVault.rotation.y = time * 0.8;
+          grp.userData.goldVault.position.y = 1.85 + Math.sin(time * 2.2) * 0.05;
+        }
+        if (grp.userData.vaultDial) {
+          grp.userData.vaultDial.rotation.z = time * 2.2;
+        }
+        if (grp.userData.bankShield) {
+          grp.userData.bankShield.rotation.y = -time * 0.9;
+          grp.userData.bankShield.position.y = 0.85 + Math.sin(time * 2.5) * 0.05;
+        }
+        if (grp.userData.splitOrbs) {
+          grp.userData.splitOrbs.forEach((orb, oi) => {
+            orb.position.y = 0.75 + Math.sin(time * 3.0 + oi * Math.PI) * 0.08;
+            orb.rotation.y = time * 1.8 + oi;
+          });
+        }
+        if (grp.userData.goldCoins) {
+          grp.userData.goldCoins.forEach((coin, ci) => {
+            const angle = time * 1.1 + ci * (Math.PI / 4);
+            const radius = 1.65;
+            coin.position.x = Math.cos(angle) * radius;
+            coin.position.z = Math.sin(angle) * radius;
+            coin.position.y = 0.25 + Math.sin(time * 2.5 + ci) * 0.2;
+            coin.rotation.y = time * 2.8 + ci;
+          });
+        }
+        if (grp.userData.halo1) grp.userData.halo1.rotation.z = time * 0.8;
+        if (grp.userData.halo2) grp.userData.halo2.rotation.z = -time * 0.6;
+      }
       else if (grp.userData.finaleGroup) {
         grp.userData.finaleGroup.rotation.y = time * 0.40;
-        grp.userData.finaleGroup.rotation.x = Math.sin(time * 0.5) * 0.05;
-        grp.userData.finaleGroup.position.y = Math.sin(time * 1.8) * 0.05;
-
-        if (grp.userData.phoneTrophy) {
-          grp.userData.phoneTrophy.position.y = Math.sin(time * 2.0) * 0.04;
-        }
-        if (grp.userData.rocketGroup) {
-          grp.userData.rocketGroup.position.y = 0.2 + Math.sin(time * 2.4) * 0.09;
-        }
-        if (grp.userData.flame) {
-          const flicker = 1.0 + Math.sin(time * 22.0) * 0.28 + Math.sin(time * 43.0) * 0.15;
-          grp.userData.flame.scale.set(1.0 + flicker * 0.12, flicker, 1.0 + flicker * 0.12);
-        }
-        if (grp.userData.halo1) grp.userData.halo1.rotation.z = time * 0.9;
-        if (grp.userData.halo2) grp.userData.halo2.rotation.z = -time * 0.7;
       }
     }
 
