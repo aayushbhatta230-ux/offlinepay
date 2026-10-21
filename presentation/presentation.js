@@ -771,82 +771,58 @@ function createDisasterHUDTexture() {
 
 // Active Pitch Deck Slides (Strictly 7 Slides for Trinity Sci-Pitch)
 const SLIDES = [
-  // ── Slide 1: Cover / The Hook ───────────────────────────
+  // ── Slide 1: The Problem (Live Ground Reality Video) ──────
   {
-    id: 'cover',
-    kicker: 'Trinity Sci-Pitch 2026 • +2 Science',
-    kickerType: 'normal',
-    title: 'Offline<span class="highlight-green">Pay</span> — Digital Payments, Even Without the Internet',
-    subtitle: 'Solving the connectivity gap for everyday micro-transactions',
-    bullets: [
-      { icon: '⚡', text: 'Solving the connectivity gap for everyday micro-transactions across local commerce', glow: 'glow-green' },
-      { icon: '📶', text: 'Works in 0-bar dead zones: basement shops, highway buses, and crowded markets', glow: 'glow-cyan' },
-      { icon: '🛡️', text: 'Pre-authorized digital vault protected by on-device biometric security', glow: 'glow-green' }
-    ],
-    actionBtn: { text: '✨ Ignite Vault [Space]', fn: 'igniteVault' },
-    prompter: {
-      pitchScript: `"Good morning respected judges! Have you ever tried paying for tea, groceries, or a bus fare with your phone, only to see the payment wheel spin endlessly because cellular data died? In Nepal and emerging markets, connectivity drops every single day. That's why we created OfflinePay—a system that lets you complete secure digital payments with absolutely zero internet connection."`,
-      technicalHighlight: `OfflinePay turns a portion of your existing digital wallet balance into a pre-authorized offline vault on your phone. Think of it like taking Rs. 2,000 cash out of an ATM and putting it into your pocket—except it stays digital, encrypted, and protected by your phone's biometric chip.`,
-      demoCue: `Display device in "Offline Mode" with successful green payment badge.`,
-      anticipatedQA: [
-        { q: 'Is OfflinePay trying to replace eSewa or Khalti?', a: 'No! OfflinePay is a B2B infrastructure layer designed to plug directly into existing wallets like eSewa and Khalti as an offline feature.' },
-        { q: 'Can a user spend money they do not have?', a: 'Impossible. The offline vault is funded from their existing wallet balance beforehand, so they can never spend more than their pre-loaded reserve.' }
-      ]
-    }
-  },
-
-  // ── Slide 2: The Problem ─────────────────────────────────
-  {
-    id: 'problem',
-    kicker: 'Slide 2 • The Problem',
+    id: 'live-problem',
+    kicker: 'Slide 1 • The Problem / Live Reality',
     kickerType: 'danger',
     title: 'When the Network Dies, <span class="highlight-danger">Commerce Stops</span>',
-    subtitle: 'Why 100% cloud-dependent wallets fail in everyday life',
+    subtitle: "Live merchant interview: Why 100% cloud-dependent wallets fail in Nepal",
+    videoSrc: 'problem-live.mp4',
     bullets: [
       { icon: '📡', text: 'Congested cellular towers, mountain valleys & concrete basements frequently cut off signals', glow: 'glow-danger' },
-      { icon: '⏳', text: 'Delayed counter queues: 30-second spinning timeouts create stranded lines', glow: 'glow-danger' },
-      { icon: '💵', text: 'Vendors forced back into physical cash when digital checkout fails', glow: 'glow-danger' }
+      { icon: '⏳', text: 'Delayed counter queues: 30-second spinning timeouts create stranded, frustrated lines', glow: 'glow-danger' },
+      { icon: '💵', text: 'Vendors forced back into physical cash when digital checkout stalls and fails', glow: 'glow-danger' }
     ],
-    actionBtn: { text: '⚠️ Trigger Blackout [Space]', fn: 'simulateBlackout' },
     prompter: {
-      pitchScript: `"Today's digital wallets rely 100% on continuous cloud access. If a cell tower gets congested, if a shop is in a concrete basement, or if you're on a moving bus, the payment hangs and fails. A single network drop halts business, queues stall, and vendors are forced right back into physical cash."`,
-      technicalHighlight: `Current wallets require a continuous 3-way cloud handshake: Customer -> Central Server -> Merchant. If network connectivity drops anywhere along that chain, the entire transaction is paralyzed.`,
-      demoCue: `Point to the 3D telecommunication tower showing severed red signal waves and the glowing 'NO CELL SIGNAL' warning sign.`,
+      pitchScript: `"Good morning respected judges! Have you ever tried paying for tea, groceries, or a bus fare with your phone, only to watch the payment wheel spin endlessly because cellular data died? Before we talk technology, watch this 25-second ground recording from a Kathmandu merchant shop. When cellular signal drops, standard digital wallets hang and fail completely, queues stall, and merchants are forced right back into physical cash. This real-world breakdown is why we built OfflinePay."`,
+      technicalHighlight: `Current digital wallets rely 100% on continuous cloud access. They require an uninterrupted 3-way handshake: Customer -> Central Server -> Merchant. A single network drop anywhere halts the entire business transaction.`,
+      demoCue: `Let the merchant interview play with sound. Point out the real-world frustration of payment timeouts.`,
       anticipatedQA: [
-        { q: 'Why hasn\'t 5G or fiber solved this problem?', a: 'Cellular radio waves cannot penetrate deep concrete basements, remote roads, or crowded metal buses. Dead zones are a physical certainty.' },
-        { q: 'Why not just use SMS banking?', a: 'SMS is slow (often 1–2 minute delays), unencrypted across telecoms, costs money per text, and also fails with zero cellular signal.' }
+        { q: 'Where was this video recorded?', a: 'Recorded live at a local provisions & meat shop in Kathmandu, demonstrating everyday digital payment timeouts.' },
+        { q: 'Why hasn\'t 5G or fiber solved this problem?', a: 'Radio waves cannot penetrate deep concrete basements, highway valleys, or metal buses. Cellular dead zones are an unavoidable physical reality.' }
       ]
     }
   },
 
-  // ── Slide 3: The Solution ────────────────────────────────
+  // ── Slide 2: The Solution (10-Second 3D Architecture Video) ─
   {
     id: 'solution',
-    kicker: 'Slide 3 • The Solution',
+    kicker: 'Slide 2 • The Solution',
     kickerType: 'normal',
     title: 'Secure <span class="highlight-green">Local Handshakes</span>',
-    subtitle: 'Direct peer-to-peer verification with zero internet',
+    subtitle: '10-Second Live Protocol Demonstration',
+    videoSrc: 'solution-demo.mp4',
     bullets: [
       { icon: '🤝', text: 'Instant peer-to-peer verification via encrypted offline QR / local connection', glow: 'glow-green' },
       { icon: '⚡', text: 'Sub-2-second confirmation: merchant receives instant, verifiable proof of payment', glow: 'glow-cyan' },
       { icon: '🔄', text: 'Automatic background ledger reconciliation once either device gets back online', glow: 'glow-green' }
     ],
-    actionBtn: { text: '⚡ Beam Payment [Space]', fn: 'firePaymentBeam' },
     prompter: {
-      pitchScript: `"Here is how OfflinePay creates a direct handshake between phones: The merchant displays a dynamic offline QR code, the customer scans it, and within two seconds, both phones confirm the payment with an encrypted digital receipt. The vendor gets instant proof of payment, and transactions reconcile automatically once back online."`,
-      technicalHighlight: `We eliminate the middleman server during checkout. The customer's phone generates a cryptographically signed payment voucher with an unforgeable hardware signature, which the merchant's phone validates locally on-device in under 50 milliseconds.`,
-      demoCue: `Point to the two 3D phones exchanging local optical data beams directly between screens with zero cellular signal.`,
+      pitchScript: `"Here is how OfflinePay solves this: The merchant shows an offline dynamic QR code, the customer scans it, and within two seconds, both phones confirm the payment through a secure local handshake. The vendor gets instant proof of payment, zero internet is needed during checkout, and transactions settle automatically with wallets like eSewa and Khalti once reconnected."`,
+      technicalHighlight: `We eliminate the middleman cloud server at checkout. The customer's phone generates an encrypted, hardware-signed payment voucher, which the merchant's phone validates locally on-device in under 50 milliseconds.`,
+      demoCue: `Point to the 10-second 3D demonstration illustrating the dynamic QR exchange, offline vault settlement, and background sync.`,
       anticipatedQA: [
-        { q: 'Does the merchant need a special machine or POS device?', a: 'No! It runs entirely on existing smartphone cameras and screens. Zero extra hardware or cost for merchants.' },
+        { q: 'Does the merchant need a special machine or POS device?', a: 'No! It runs entirely on existing smartphone cameras and screens. Zero extra hardware or equipment cost for merchants.' },
         { q: 'What if the merchant stays offline for 3 days?', a: 'All cryptographic receipts are stored securely on the merchant\'s phone and will automatically settle the moment they connect to Wi-Fi or cellular.' }
       ]
     }
   },
 
-  // ── Slide 4: Architecture (Simplified Security) ─────────
+  // ── Slide 3: Architecture & Simplified Security ─────────
   {
     id: 'architecture',
-    kicker: 'Slide 4 • Architecture & Security',
+    kicker: 'Slide 3 • Architecture & Security',
     kickerType: 'purple',
     title: 'Why You Cannot <span class="highlight-cyan">"Fake" or Duplicate</span> Money',
     subtitle: 'Military-grade device security explained simply',
@@ -863,6 +839,30 @@ const SLIDES = [
       anticipatedQA: [
         { q: 'What happens if a phone is rooted or jailbroken?', a: 'The private signing keys are generated inside the phone\'s hardware Secure Enclave, which the operating system itself cannot read or tamper with.' },
         { q: 'What if someone tries to spend offline on two phones at once?', a: 'The offline vault balance is bound to a single physical device with a monotonic counter. Any collision is detected on sync, and the user\'s KYC wallet account is frozen.' }
+      ]
+    }
+  },
+
+  // ── Slide 4: Target Users & Real Ecosystem ───────────────
+  {
+    id: 'target-users',
+    kicker: 'Slide 4 • Target Users & Ecosystem',
+    kickerType: 'normal',
+    title: 'Who <span class="highlight-cyan">Needs</span> OfflinePay?',
+    subtitle: 'Bridging the connectivity gap across essential sectors',
+    bullets: [
+      { icon: '☕', text: 'Micro-merchants, tea stalls, campus cafeterias & local bazaars in weak-signal zones', glow: 'glow-green' },
+      { icon: '🚌', text: 'Public transit buses, microbuses & highway routes operating through continuous dead zones', glow: 'glow-cyan' },
+      { icon: '📱', text: 'Major digital wallet companies (eSewa, Khalti) aiming for 100% reliable transaction capture', glow: 'glow-green' }
+    ],
+    actionBtn: { text: '📍 Explore Ecosystem [Space]', fn: 'scanUserSegments' },
+    prompter: {
+      pitchScript: `"Who needs OfflinePay? Anyone involved in high-frequency everyday micro-transactions. Campus cafeterias during lunch rush, tea stalls under metal awnings, and highway buses where network drops every kilometer. For wallet companies like eSewa and Khalti, OfflinePay captures millions in lost offline transactions that currently fall back to cash."`,
+      technicalHighlight: `OfflinePay is designed as a drop-in software layer. Micro-merchants need zero extra POS hardware—just their existing smartphone screen and camera.`,
+      demoCue: `Point to the 3D local commerce ecosystem showing the tea shop stall and transit bus.`,
+      anticipatedQA: [
+        { q: 'Why is public transit such a strong use case?', a: 'Buses travel through dead zones constantly, and passengers cannot wait 30 seconds for a payment timeout. Sub-2s offline scanning keeps lines moving smoothly.' },
+        { q: 'Is it free for students and small merchants?', a: 'Yes! Small merchants and students pay zero hardware or setup costs.' }
       ]
     }
   },
@@ -886,7 +886,7 @@ const SLIDES = [
       demoCue: `Point to the 3D commerce ecosystem displaying the partner integration hub and micro-fee token stream.`,
       anticipatedQA: [
         { q: 'Why won\'t big wallets build it themselves?', a: 'Big wallets focus on merchant acquisition, customer service, and banking integrations. Specialized offline cryptographic engineering is distinct from core operations; licensing our tested SDK is much faster and cheaper.' },
-        { q: 'Is it free for students and everyday merchants?', a: 'Yes! Small merchants and everyday users pay zero extra fees. Wallets absorb the tiny infrastructure fee because it prevents customer churn.' }
+        { q: 'Is it free for everyday merchants?', a: 'Yes! Small merchants and everyday users pay zero extra fees. Wallets absorb the tiny infrastructure fee because it prevents customer churn.' }
       ]
     }
   },
@@ -1109,17 +1109,18 @@ class PresentationApp {
     const gBenefits = createGroup('benefits');
     const gConclusion = createGroup('conclusion');
 
-    this.allSceneGroups['cover'] = gIdea;
-    this.allSceneGroups['idea'] = gIdea;
-    this.allSceneGroups['problem'] = gProblem;
+    this.allSceneGroups['live-problem'] = gLiveProblem;
     this.allSceneGroups['solution'] = gSolution;
     this.allSceneGroups['architecture'] = gScience;
     this.allSceneGroups['science'] = gScience;
+    this.allSceneGroups['target-users'] = gTargetUsers;
     this.allSceneGroups['business'] = gBusiness;
     this.allSceneGroups['comparison'] = gBenefits;
     this.allSceneGroups['benefits'] = gBenefits;
     this.allSceneGroups['vision'] = gConclusion;
     this.allSceneGroups['conclusion'] = gConclusion;
+    this.allSceneGroups['idea'] = gIdea;
+    this.allSceneGroups['problem'] = gProblem;
 
     this.slideObjects = SLIDES.map(s => this.allSceneGroups[s.id] || createGroup(s.id));
 
@@ -2104,11 +2105,28 @@ class PresentationApp {
   goToSlide(index) {
     if (index < 0 || index >= this.totalSlides || index === this.currentSlideIndex) return;
 
+    // Pause all video elements if leaving
+    const existingProblemVid = document.getElementById('problem-live-video');
+    if (existingProblemVid) {
+      existingProblemVid.pause();
+      existingProblemVid.currentTime = 0;
+      existingProblemVid.muted = true;
+    }
+    const existingVid = document.getElementById('solution-demo-video');
+    if (existingVid) {
+      existingVid.pause();
+      existingVid.currentTime = 0;
+      existingVid.muted = true;
+    }
+
     this.currentSlideIndex = index;
     sfx.slideChange();
 
+    const currentSlide = SLIDES[index];
+    const isVideoSlide = (currentSlide.id === 'live-problem' || currentSlide.id === 'solution');
+
     this.slideObjects.forEach((grp, i) => {
-      grp.visible = (i === index);
+      grp.visible = (!isVideoSlide && i === index);
     });
 
     this.updateResponsiveLayout();
@@ -2131,8 +2149,9 @@ class PresentationApp {
     const data = SLIDES[index];
 
     // Ensure corresponding 3D scene group is visible
+    const isVideoSlide = (data.id === 'live-problem' || data.id === 'solution');
     this.slideObjects.forEach((grp, i) => {
-      grp.visible = (i === index);
+      grp.visible = (!isVideoSlide && i === index);
     });
 
     // HUD Counter
@@ -2152,7 +2171,209 @@ class PresentationApp {
 
     const viewport = document.getElementById('slide-viewport');
 
-    if (data.id === 'comparison') {
+    if (data.id === 'live-problem') {
+      // Slide 1: Live Problem Statement - Vertical Video Theater Split
+      viewport.innerHTML = `
+        <div class="problem-split-container">
+          <div class="problem-left-col">
+            <div class="slide-kicker ${data.kickerType || 'danger'}">${data.kicker}</div>
+            <h1 class="slide-title">${data.title}</h1>
+            <div class="bullets-stack">
+              ${data.bullets.map(b => `
+                <div class="bullet-item ${b.glow || 'glow-danger'}">
+                  <span class="bullet-icon">${b.icon}</span>
+                  <span class="bullet-text">${b.text}</span>
+                </div>
+              `).join('')}
+            </div>
+            
+            <div class="merchant-quote-card">
+              <div class="quote-author">🎙️ LIVE MERCHANT TESTIMONY • KATHMANDU</div>
+              <div class="quote-nepali">"Customer le scan garyo bhane network chaina bhanda payment fail hunchha... ani cash nai maagnu parcha."</div>
+              <div style="font-size: 11px; color: #94a3b8; line-height: 1.3;">("When customers scan and cellular signal drops, digital payment times out... forcing an awkward fallback to cash.")</div>
+            </div>
+          </div>
+
+          <div class="problem-right-col">
+            <div class="vertical-phone-kiosk">
+              <div class="kiosk-notch"></div>
+              <div class="kiosk-screen">
+                <div class="kiosk-top-overlay">
+                  <div class="kiosk-live-badge">
+                    <span class="kiosk-pulse-red"></span>
+                    <span>LIVE RECORDING</span>
+                  </div>
+                  <button class="kiosk-sound-btn active" id="problem-sound-btn" onclick="event.stopPropagation(); presentation.toggleProblemVideoAudio()">
+                    🔊 <span id="problem-sound-state">Audio: ON</span>
+                  </button>
+                </div>
+                <video id="problem-live-video" src="problem-live.mp4" playsinline preload="auto" onclick="presentation.toggleProblemVideoPlay()"></video>
+                <div class="kiosk-start-overlay hidden" id="problem-start-overlay" onclick="presentation.startProblemVideoWithSound()">
+                  <div class="kiosk-play-pulse-btn">
+                    <span class="kiosk-play-icon">▶</span>
+                  </div>
+                  <div class="kiosk-start-heading">TAP TO PLAY WITH SOUND</div>
+                  <div class="kiosk-start-sub">Unmutes live merchant interview (100% Volume)</div>
+                </div>
+                <div class="kiosk-progress-bar">
+                  <div class="kiosk-progress-fill" id="problem-progress-fill"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kiosk-controls-row">
+              <button class="theater-btn replay-btn" onclick="presentation.replayProblemVideo()" title="Replay Live Recording">
+                🔄 Replay Video
+              </button>
+              <button class="theater-btn next-slide-btn" id="problem-next-btn" onclick="presentation.nextSlide()" title="Proceed to Our Solution [Space or ➔]">
+                <span>Our Solution</span> <span class="theater-arrow">➔</span> <kbd class="kbd-badge">Space</kbd>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Autoplay problem live video with sound & safety fallback
+      setTimeout(() => {
+        const vid = document.getElementById('problem-live-video');
+        const progressFill = document.getElementById('problem-progress-fill');
+        const nextBtn = document.getElementById('problem-next-btn');
+        const soundBtn = document.getElementById('problem-sound-btn');
+        const soundState = document.getElementById('problem-sound-state');
+        const overlay = document.getElementById('problem-start-overlay');
+
+        if (!vid) return;
+
+        vid.currentTime = 0;
+        vid.muted = false;
+        vid.volume = 1.0;
+
+        vid.ontimeupdate = () => {
+          if (progressFill && vid.duration) {
+            const pct = (vid.currentTime / vid.duration) * 100;
+            progressFill.style.width = `${pct}%`;
+          }
+        };
+
+        vid.onended = () => {
+          if (nextBtn) nextBtn.classList.add('pulse-ready');
+          if (progressFill) progressFill.style.width = '100%';
+          this.showToast('✨ Live recording complete! Press [Space] to reveal our Solution');
+        };
+
+        const playPromise = vid.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              if (overlay) overlay.classList.add('hidden');
+              if (soundBtn) soundBtn.classList.add('active');
+              if (soundState) soundState.textContent = 'Audio: ON 🔊';
+            })
+            .catch(err => {
+              console.warn('Autoplay unmuted blocked by policy; waiting for user gesture at 0:', err);
+              vid.pause();
+              vid.currentTime = 0;
+              if (overlay) overlay.classList.remove('hidden');
+              if (soundBtn) soundBtn.classList.remove('active');
+              if (soundState) soundState.textContent = 'Click for Sound 🔊';
+              this.showToast('🔊 Tap the phone screen to start video with sound');
+            });
+        }
+      }, 60);
+
+    } else if (data.id === 'solution') {
+      // Slide 2: Full-Screen Independent Theater Mode for 10-Second 3D Architecture Video
+      viewport.innerHTML = `
+        <div class="theater-fullscreen-container">
+          <div class="theater-topbar">
+            <div class="theater-top-title-group">
+              <div class="theater-badge">
+                <span class="theater-pulse-dot"></span>
+                <span>OFFLINEPAY 3D ARCHITECTURE</span>
+              </div>
+              <h2 class="theater-main-title">10-Sec Live Protocol Demonstration</h2>
+            </div>
+            <button class="theater-sound-pill active" id="vid-audio-toggle" onclick="presentation.toggleVideoAudio()">
+              🔊 <span id="vid-audio-state">Voiceover: ON (100%)</span>
+            </button>
+          </div>
+
+          <div class="theater-screen-frame">
+            <video id="solution-demo-video" src="solution-demo.mp4" playsinline preload="auto"></video>
+            <div class="theater-progress-track">
+              <div class="theater-progress-fill" id="vid-progress-fill"></div>
+            </div>
+          </div>
+
+          <div class="theater-bottom-bar">
+            <div class="theater-flow-chips">
+              <span class="flow-chip active">1. Dynamic QR Handshake</span>
+              <span class="flow-arrow">➔</span>
+              <span class="flow-chip active">2. Cryptographic Offline Vault</span>
+              <span class="flow-arrow">➔</span>
+              <span class="flow-chip active">3. eSewa / Khalti Sync</span>
+            </div>
+
+            <div class="theater-action-group">
+              <button class="theater-btn replay-btn" onclick="presentation.replayTheaterVideo()" title="Replay 10-second video">
+                🔄 Replay
+              </button>
+              <button class="theater-btn next-slide-btn" id="theater-next-btn" onclick="presentation.nextSlide()" title="Proceed to Slide 3 [Space or ➔]">
+                <span>Next Slide</span> <span class="theater-arrow">➔</span> <kbd class="kbd-badge">Space</kbd>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Autoplay unmuted with safety fallback
+      setTimeout(() => {
+        const vid = document.getElementById('solution-demo-video');
+        const progressFill = document.getElementById('vid-progress-fill');
+        const nextBtn = document.getElementById('theater-next-btn');
+        const soundState = document.getElementById('vid-audio-state');
+        const soundBtn = document.getElementById('vid-audio-toggle');
+
+        if (!vid) return;
+
+        vid.currentTime = 0;
+        vid.muted = false;
+        vid.volume = 1.0;
+
+        vid.ontimeupdate = () => {
+          if (progressFill && vid.duration) {
+            const pct = (vid.currentTime / vid.duration) * 100;
+            progressFill.style.width = `${pct}%`;
+          }
+        };
+
+        vid.onended = () => {
+          if (nextBtn) {
+            nextBtn.classList.add('pulse-ready');
+          }
+          if (progressFill) progressFill.style.width = '100%';
+          this.showToast('✨ Demonstration complete! Press [Space] or click Next Slide');
+        };
+
+        const playPromise = vid.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              if (soundBtn) soundBtn.classList.add('active');
+              if (soundState) soundState.textContent = 'Voiceover: ON 🔊';
+            })
+            .catch(err => {
+              console.warn('Autoplay unmuted restricted by browser policy:', err);
+              vid.muted = true;
+              vid.play().catch(() => {});
+              if (soundBtn) soundBtn.classList.remove('active');
+              if (soundState) soundState.textContent = 'Click to Unmute 🔊';
+              this.showToast('🔊 Click "Unmute Voiceover" to hear narration');
+            });
+        }
+      }, 60);
+
+    } else if (data.id === 'comparison') {
       // Slide 6: Market Comparison Table
       viewport.innerHTML = `
         <div class="slide active">
@@ -2274,61 +2495,150 @@ class PresentationApp {
     if (this[fnName]) this[fnName]();
   }
 
-  igniteVault() {
-    sfx.verifySuccess();
-    this.showToast('✨ Offline Vault Initialized: Phone Secured & Balance Ready');
-    const grp = this.slideObjects[0]?.userData;
-    if (grp) {
-      if (grp.heroCoin) {
-        grp.heroCoin.scale.set(1.35, 1.35, 1.35);
-        setTimeout(() => grp.heroCoin.scale.set(1.0, 1.0, 1.0), 300);
-      }
-      if (grp.lockGroup) {
-        grp.lockGroup.rotation.z += Math.PI * 2;
-      }
+  startProblemVideoWithSound() {
+    const vid = document.getElementById('problem-live-video');
+    const overlay = document.getElementById('problem-start-overlay');
+    const soundBtn = document.getElementById('problem-sound-btn');
+    const soundState = document.getElementById('problem-sound-state');
+    if (!vid) return;
+
+    if (overlay) overlay.classList.add('hidden');
+    vid.currentTime = 0;
+    vid.muted = false;
+    vid.volume = 1.0;
+
+    vid.play().then(() => {
+      if (soundBtn) soundBtn.classList.add('active');
+      if (soundState) soundState.textContent = 'Audio: ON 🔊';
+      this.showToast('🎙️ Live Merchant Testimony: 100% Volume (Playing from Start)');
+    }).catch(err => {
+      console.warn('Playback error:', err);
+      vid.muted = true;
+      vid.play().catch(() => {});
+    });
+  }
+
+  toggleProblemVideoPlay() {
+    const vid = document.getElementById('problem-live-video');
+    const overlay = document.getElementById('problem-start-overlay');
+    if (!vid) return;
+
+    if (overlay && !overlay.classList.contains('hidden')) {
+      this.startProblemVideoWithSound();
+      return;
+    }
+
+    if (vid.paused) {
+      vid.play();
+      this.showToast('▶️ Playing Live Ground Recording');
+    } else {
+      vid.pause();
+      this.showToast('⏸️ Paused Live Ground Recording');
     }
   }
 
-  simulateBlackout() {
-    sfx.dangerAlert();
-    this.showToast('⚠️ CENTRAL TOWER BLACKOUT: 0 Signal Bars — OfflinePay Engaged', true);
-    const grp = this.slideObjects[1]?.userData;
-    if (grp) {
-      if (grp.beacon) {
-        grp.beacon.scale.set(2.2, 2.2, 2.2);
-        setTimeout(() => grp.beacon.scale.set(1.0, 1.0, 1.0), 400);
+  toggleProblemVideoAudio() {
+    const vid = document.getElementById('problem-live-video');
+    const btn = document.getElementById('problem-sound-btn');
+    const stateSpan = document.getElementById('problem-sound-state');
+    const overlay = document.getElementById('problem-start-overlay');
+    if (!vid) return;
+
+    vid.muted = !vid.muted;
+    if (!vid.muted) {
+      vid.volume = 1.0;
+      if (vid.currentTime < 6.0) {
+        vid.currentTime = 0;
       }
-      if (grp.warningSign) {
-        grp.warningSign.position.z += 0.4;
-        setTimeout(() => grp.warningSign.position.z -= 0.4, 400);
-      }
+      vid.play().catch(() => {});
+      if (overlay) overlay.classList.add('hidden');
+      if (btn) btn.classList.add('active');
+      if (stateSpan) stateSpan.textContent = 'Audio: ON 🔊';
+      this.showToast('🎙️ Merchant Audio: UNMUTED (100% Volume)');
+    } else {
+      if (btn) btn.classList.remove('active');
+      if (stateSpan) stateSpan.textContent = 'Audio: OFF 🔇';
+      this.showToast('🔇 Merchant Audio Muted');
     }
+  }
+
+  replayProblemVideo() {
+    const vid = document.getElementById('problem-live-video');
+    const nextBtn = document.getElementById('problem-next-btn');
+    const progressFill = document.getElementById('problem-progress-fill');
+    const overlay = document.getElementById('problem-start-overlay');
+    const soundBtn = document.getElementById('problem-sound-btn');
+    const soundState = document.getElementById('problem-sound-state');
+    if (!vid) return;
+
+    if (nextBtn) nextBtn.classList.remove('pulse-ready');
+    if (progressFill) progressFill.style.width = '0%';
+    if (overlay) overlay.classList.add('hidden');
+
+    vid.currentTime = 0;
+    vid.muted = false;
+    vid.volume = 1.0;
+    vid.play().then(() => {
+      if (soundBtn) soundBtn.classList.add('active');
+      if (soundState) soundState.textContent = 'Audio: ON 🔊';
+    }).catch(() => {
+      vid.muted = true;
+      vid.play().catch(() => {});
+    });
+
+    sfx.slideChange();
+    this.showToast('🔄 Replaying Live Merchant Problem Testimony');
   }
 
   firePaymentBeam() {
+    this.replayTheaterVideo();
+  }
+
+  replayTheaterVideo() {
+    const vid = document.getElementById('solution-demo-video');
+    const nextBtn = document.getElementById('theater-next-btn');
+    const progressFill = document.getElementById('vid-progress-fill');
+    if (!vid) return;
+
+    if (nextBtn) nextBtn.classList.remove('pulse-ready');
+    if (progressFill) progressFill.style.width = '0%';
+
+    vid.currentTime = 0;
+    vid.muted = false;
+    vid.volume = 1.0;
+    vid.play().catch(() => {
+      vid.muted = true;
+      vid.play().catch(() => {});
+    });
+
     sfx.beamLaser();
-    this.showToast('⚡ Offline Handshake: Optical Cryptographic Beam Transferred in 18ms');
-    const grp = this.slideObjects[2]?.userData;
-    if (grp) {
-      if (grp.waveCore) {
-        grp.waveCore.scale.set(2.2, 1.3, 2.2);
-        setTimeout(() => grp.waveCore.scale.set(1.0, 1.0, 1.0), 400);
-      }
-      if (grp.phoneAFrame && grp.phoneBFrame) {
-        grp.phoneAFrame.position.x += 0.15;
-        grp.phoneBFrame.position.x -= 0.15;
-        setTimeout(() => {
-          if (grp.phoneAFrame) grp.phoneAFrame.position.x -= 0.15;
-          if (grp.phoneBFrame) grp.phoneBFrame.position.x += 0.15;
-        }, 350);
-      }
+    this.showToast('⚡ Replaying 10-Second 3D Solution Demo');
+  }
+
+  toggleVideoAudio() {
+    const vid = document.getElementById('solution-demo-video');
+    const btn = document.getElementById('vid-audio-toggle');
+    const stateSpan = document.getElementById('vid-audio-state');
+    if (!vid) return;
+
+    vid.muted = !vid.muted;
+    if (!vid.muted) {
+      vid.volume = 1.0;
+      vid.play().catch(() => {});
+      if (btn) btn.classList.add('active');
+      if (stateSpan) stateSpan.textContent = 'Voiceover: ON 🔊';
+      this.showToast('🎙️ Solution Voiceover: UNMUTED (100% Volume)');
+    } else {
+      if (btn) btn.classList.remove('active');
+      if (stateSpan) stateSpan.textContent = 'Click to Unmute 🔊';
+      this.showToast('🔇 Solution Voiceover: MUTED');
     }
   }
 
   verifyHashChain() {
     sfx.verifySuccess();
     this.showToast('🔐 Hardware Security Seals Verified: Sequential Receipt #102 Sealed');
-    const grp = this.slideObjects[3]?.userData;
+    const grp = this.slideObjects[2]?.userData;
     if (grp) {
       if (grp.masterKey) {
         grp.masterKey.rotation.z -= 0.5;
@@ -2341,6 +2651,24 @@ class PresentationApp {
             setTimeout(() => link.scale.set(1.1, 0.65, 1.0), 250);
           }, idx * 75);
         });
+      }
+    }
+  }
+
+  scanUserSegments() {
+    sfx.verifySuccess();
+    this.showToast('📍 Ecosystem Connected: Tea Merchant Standee & Transit Bus Synced');
+    const grp = this.slideObjects[3]?.userData;
+    if (grp) {
+      if (grp.shopPin) {
+        grp.shopPin.position.y += 0.35;
+        setTimeout(() => grp.shopPin.position.y -= 0.35, 300);
+      }
+      if (grp.busPin) {
+        setTimeout(() => {
+          if (grp.busPin) grp.busPin.position.y += 0.35;
+          setTimeout(() => { if (grp.busPin) grp.busPin.position.y -= 0.35; }, 300);
+        }, 150);
       }
     }
   }
@@ -2887,8 +3215,13 @@ class PresentationApp {
     document.addEventListener('mozfullscreenchange', onFullscreenChange);
     document.addEventListener('MSFullscreenChange', onFullscreenChange);
 
-    // First-interaction gesture: unlock WebAudio & AudioContext
+    // First-interaction gesture: auto-start problem video with sound on first user gesture & unlock WebAudio
     const triggerAudioOnFirstGesture = () => {
+      const vid = document.getElementById('problem-live-video');
+      const overlay = document.getElementById('problem-start-overlay');
+      if (vid && this.currentSlideIndex === 0 && (vid.paused || (overlay && !overlay.classList.contains('hidden')))) {
+        this.startProblemVideoWithSound();
+      }
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!this.clapAudioCtx && AudioCtx) {
         this.clapAudioCtx = new AudioCtx();
@@ -2901,13 +3234,16 @@ class PresentationApp {
     window.addEventListener('touchstart', triggerAudioOnFirstGesture, { once: true, passive: true });
 
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
         e.preventDefault();
-        this.nextSlide();
-      } else if (e.key === ' ') {
-        e.preventDefault();
+        const vid = document.getElementById('problem-live-video');
+        const overlay = document.getElementById('problem-start-overlay');
+        if (this.currentSlideIndex === 0 && vid && (vid.paused || (overlay && !overlay.classList.contains('hidden')))) {
+          this.startProblemVideoWithSound();
+          return;
+        }
         const currentSlide = SLIDES[this.currentSlideIndex];
-        if (currentSlide && currentSlide.actionBtn) {
+        if (e.key === ' ' && currentSlide && currentSlide.actionBtn) {
           this.triggerSlideAction(currentSlide.actionBtn.fn);
         } else {
           this.nextSlide();
