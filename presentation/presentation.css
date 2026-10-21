@@ -386,6 +386,111 @@ html, body {
   letter-spacing: -0.01em;
 }
 
+/* Interactive 3D Slide Action Button */
+.slide-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #34d399;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  width: fit-content;
+}
+
+.slide-action-btn:hover {
+  background: rgba(16, 185, 129, 0.32);
+  border-color: #10b981;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 22px rgba(16, 185, 129, 0.45);
+}
+
+/* Slide 6: Market Comparison Table */
+.comparison-card {
+  margin-top: 14px;
+  background: var(--surface-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.comparison-table th {
+  padding: 7px 10px;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.comparison-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+}
+
+.comparison-table tr:last-child td {
+  border-bottom: none;
+}
+
+.comparison-table tr.highlight-row {
+  background: rgba(16, 185, 129, 0.14);
+}
+
+.comparison-table tr.highlight-row td {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.comp-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.comp-badge.green {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.comp-badge.red {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.comp-badge.cyan {
+  background: rgba(0, 240, 255, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+}
+
 /* Bottom Minimal Control HUD (Clean & Centered) */
 .bottom-hud {
   position: absolute;
@@ -1073,6 +1178,26 @@ html, body {
   .bullet-text {
     font-size: 12.5px;
     line-height: 1.35;
+  }
+
+  .comparison-card {
+    padding: 8px 10px;
+    margin-top: 8px;
+  }
+  .comparison-table th,
+  .comparison-table td {
+    padding: 5px 6px;
+    font-size: 11px;
+  }
+  .comp-badge {
+    font-size: 9.5px;
+    padding: 1px 5px;
+  }
+
+  .slide-action-btn {
+    font-size: 12px;
+    padding: 8px 14px;
+    margin-top: 8px;
   }
 
   /* Slide 3 Theater Mode on Tablet / Mobile */
