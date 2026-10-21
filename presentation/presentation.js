@@ -868,7 +868,7 @@ const SLIDES = [
         title: 'Physical Signal Dead Zones',
         tag: 'Zero Reception',
         theme: 'danger',
-        text: 'Concrete basements, highway valleys & metal public buses constantly block cellular signals—cutting off internet access right when consumers need to pay.'
+        text: 'Concrete basements, highway valleys & metal public buses constantly block cellular signals, cutting off internet right when consumers need to pay.'
       },
       {
         icon: '⏳',

@@ -251,6 +251,9 @@ html, body {
 .slide-kicker {
   display: inline-flex;
   align-items: center;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: fit-content;
   gap: 8px;
   font-size: 11px;
   font-weight: 800;
