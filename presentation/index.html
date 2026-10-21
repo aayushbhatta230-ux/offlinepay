@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>OfflinePay — 3D Pitch Deck</title>
-  <link rel="stylesheet" href="presentation.css?v=20261021_v40">
+  <link rel="stylesheet" href="presentation.css?v=20261021_v41">
   <!-- Local Three.js for 100% OFFLINE reliability -->
   <script src="vendor/three.min.js"></script>
 </head>
@@ -27,12 +27,12 @@
   </div>
 
   <!-- Interactive HUD Toast -->
-  <div id="hud-toast" class="hud-toast">
+  <div id="hud-toast" class="hud-toast" role="status" aria-live="polite" aria-atomic="true">
     <span id="toast-text">System Initialized</span>
   </div>
 
   <!-- Top Navigation & Presentation HUD -->
-  <header class="top-hud">
+  <header class="top-hud" role="banner">
     <div class="brand-badge">
       <div class="brand-logo-icon">OP</div>
       <span class="brand-text">OfflinePay</span>
@@ -40,84 +40,87 @@
     </div>
 
     <div class="hud-center">
-      <div class="timer-box">
-        <div class="timer-dot"></div>
-        <span id="hud-timer">00:00</span>
+      <div class="timer-box" role="timer" aria-label="Presentation Timer" aria-live="polite">
+        <div class="timer-dot" aria-hidden="true"></div>
+        <span id="hud-timer" aria-atomic="true">00:00</span>
       </div>
-      <div class="slide-counter">
+      <div class="slide-counter" role="status" aria-label="Current Slide" aria-live="polite" aria-atomic="true">
         <span id="hud-current-slide">01</span> / <span id="hud-total-slides">07</span>
       </div>
     </div>
 
     <div class="hud-actions">
-      <button id="clap-toggle-btn" class="icon-btn" title="Toggle Clap Navigation [C]" onclick="presentation.toggleClapDetection()">
+      <button id="clap-toggle-btn" class="icon-btn" title="Toggle Clap Navigation [C]" aria-label="Toggle Clap Navigation" onclick="presentation.toggleClapDetection()">
         <span class="clap-icon">👏</span>
         <span id="clap-meter-dot" class="clap-meter-dot"></span>
       </button>
-      <button id="sound-toggle-btn" class="icon-btn active" title="Toggle Sound [M]" onclick="presentation.toggleMute()">
+      <button id="sound-toggle-btn" class="icon-btn active" title="Toggle Sound [M]" aria-label="Toggle Sound" onclick="presentation.toggleMute()">
         🔊
       </button>
-      <button id="prompter-toggle-btn" class="icon-btn" title="Presenter Prompter [P / N]" onclick="presentation.togglePrompter()">
+      <button id="prompter-toggle-btn" class="icon-btn" title="Presenter Prompter [P / N]" aria-label="Toggle Presenter Prompter" aria-haspopup="dialog" aria-expanded="false" aria-controls="prompter-drawer" onclick="presentation.togglePrompter()">
         🎙️
       </button>
-      <button id="fullscreen-btn" class="icon-btn" title="Toggle Fullscreen [F]" onclick="presentation.toggleFullscreen()">
+      <button id="fullscreen-btn" class="icon-btn" title="Toggle Fullscreen [F]" aria-label="Toggle Fullscreen" onclick="presentation.toggleFullscreen()">
         ⛶
       </button>
     </div>
   </header>
 
   <!-- Slide Viewport (Filled Dynamically) -->
-  <main id="slide-viewport" class="slide-viewport"></main>
+  <main id="slide-viewport" class="slide-viewport" role="main" aria-label="Presentation Slide Deck" aria-live="polite" aria-atomic="false"></main>
 
   <!-- Bottom Minimal Navigation HUD -->
-  <footer class="bottom-hud">
+  <footer class="bottom-hud" role="contentinfo" aria-label="Slide Navigation Controls">
     <div class="nav-center">
-      <button class="nav-arrow-btn" title="Previous Slide [Left Arrow]" onclick="presentation.prevSlide()">
+      <button class="nav-arrow-btn" title="Previous Slide [Left Arrow]" aria-label="Previous Slide" onclick="presentation.prevSlide()">
         &#9664;
       </button>
-      <div id="slide-dots" class="slide-dots-container"></div>
-      <button class="nav-arrow-btn" title="Next Slide [Right Arrow / Space]" onclick="presentation.nextSlide()">
+      <div id="slide-dots" class="slide-dots-container" role="tablist" aria-label="Slide Navigation Dots"></div>
+      <button class="nav-arrow-btn" title="Next Slide [Right Arrow / Space]" aria-label="Next Slide" onclick="presentation.nextSlide()">
         &#9654;
       </button>
     </div>
   </footer>
 
+  <!-- Prompter Backdrop for auto-collapse drawer on smaller viewports (<= 1024px) -->
+  <div id="prompter-backdrop" class="prompter-backdrop" aria-hidden="true" onclick="presentation.closePrompter()"></div>
+
   <!-- Presenter Prompter Drawer (Press 'P') -->
-  <aside id="prompter-drawer" class="prompter-drawer">
+  <aside id="prompter-drawer" class="prompter-drawer" role="complementary" aria-label="Presenter Prompter Notes" aria-live="polite" aria-atomic="false" aria-hidden="true">
     <div class="prompter-header">
-      <div id="prompter-title" class="prompter-title">🎙️ Presenter Prompter</div>
-      <button class="prompter-close-btn" onclick="presentation.togglePrompter()">&times;</button>
+      <h2 id="prompter-title" class="prompter-title">🎙️ Presenter Prompter</h2>
+      <button class="prompter-close-btn" aria-label="Close Presenter Prompter" onclick="presentation.closePrompter()">&times;</button>
     </div>
 
     <div class="notes-section">
-      <div class="notes-section-title">What to Say (Pitch Script)</div>
-      <div id="prompter-script" class="speech-script">
+      <div class="notes-section-title" id="prompter-script-label">What to Say (Pitch Script)</div>
+      <div id="prompter-script" class="speech-script" aria-labelledby="prompter-script-label" aria-live="polite" aria-atomic="true">
         Hook the audience with the reality of network dropouts in emerging markets.
       </div>
     </div>
 
     <div class="notes-section">
-      <div class="notes-section-title">Architecture Highlight (Simplified)</div>
-      <div id="prompter-takeaway" class="tech-takeaway">
+      <div class="notes-section-title" id="prompter-takeaway-label">Architecture Highlight (Simplified)</div>
+      <div id="prompter-takeaway" class="tech-takeaway" aria-labelledby="prompter-takeaway-label" aria-live="polite" aria-atomic="true">
         Pre-authorized digital checkbook with serial numbers & uncopyable hardware seals.
       </div>
     </div>
 
     <div class="notes-section">
-      <div class="notes-section-title">Live 3D & Demo Cue</div>
-      <div id="prompter-cue" class="tech-takeaway" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+      <div class="notes-section-title" id="prompter-cue-label">Live 3D & Demo Cue</div>
+      <div id="prompter-cue" class="tech-takeaway" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399;" aria-labelledby="prompter-cue-label" aria-live="polite" aria-atomic="true">
         Display device in "Offline Mode" with successful green payment badge.
       </div>
     </div>
 
     <div class="notes-section">
-      <div class="notes-section-title">Anticipated Judge Q&A</div>
-      <div id="prompter-qa"></div>
+      <div class="notes-section-title" id="prompter-qa-label">Anticipated Judge Q&A</div>
+      <div id="prompter-qa" aria-labelledby="prompter-qa-label" aria-live="polite" aria-atomic="true"></div>
     </div>
   </aside>
 
   <!-- Presentation Engine Script -->
-  <script src="presentation.js?v=20261021_v40"></script>
+  <script src="presentation.js?v=20261021_v41"></script>
 </body>
 </html>
 

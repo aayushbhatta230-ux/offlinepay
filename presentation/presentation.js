@@ -2261,6 +2261,11 @@ class PresentationApp {
   goToSlide(index) {
     if (index < 0 || index >= this.totalSlides || index === this.currentSlideIndex) return;
 
+    // Auto-collapse prompter on smaller viewports (<= 1024px) so it does not compress the main stage content
+    if (window.innerWidth <= 1024 && this.isPrompterOpen) {
+      this.closePrompter();
+    }
+
     // Pause all video elements if leaving
     const existingProblemVid = document.getElementById('problem-live-video');
     if (existingProblemVid) {
@@ -2892,12 +2897,29 @@ class PresentationApp {
     this.igniteRevenue();
   }
 
-  togglePrompter() {
+  togglePrompter(forceState) {
     const drawer = document.getElementById('prompter-drawer');
     const btn = document.getElementById('prompter-toggle-btn');
-    this.isPrompterOpen = !this.isPrompterOpen;
-    drawer.classList.toggle('open', this.isPrompterOpen);
-    btn.classList.toggle('active', this.isPrompterOpen);
+    const backdrop = document.getElementById('prompter-backdrop');
+    this.isPrompterOpen = (typeof forceState === 'boolean') ? forceState : !this.isPrompterOpen;
+
+    if (drawer) {
+      drawer.classList.toggle('open', this.isPrompterOpen);
+      drawer.setAttribute('aria-hidden', String(!this.isPrompterOpen));
+    }
+    if (btn) {
+      btn.classList.toggle('active', this.isPrompterOpen);
+      btn.setAttribute('aria-expanded', String(this.isPrompterOpen));
+    }
+    if (backdrop) {
+      backdrop.classList.toggle('active', this.isPrompterOpen && window.innerWidth <= 1024);
+    }
+  }
+
+  closePrompter() {
+    if (this.isPrompterOpen) {
+      this.togglePrompter(false);
+    }
   }
 
   toggleFullscreen() {
@@ -3327,6 +3349,12 @@ class PresentationApp {
       this.renderer.setSize(w, h);
     }
 
+    // Auto-sync prompter backdrop on responsive changes
+    const backdrop = document.getElementById('prompter-backdrop');
+    if (backdrop) {
+      backdrop.classList.toggle('active', this.isPrompterOpen && w <= 1024);
+    }
+
     if (isPortrait) {
       // Mobile / Portrait Tablet: Center 3D model gracefully in upper viewport
       const scaleFactor = aspect < 0.55 ? 0.65 : 0.74;
@@ -3431,6 +3459,10 @@ class PresentationApp {
       } else if (e.key === 'f' || e.key === 'F') {
         this.toggleFullscreen();
       } else if (e.key === 'Escape') {
+        if (this.isPrompterOpen) {
+          this.closePrompter();
+          return;
+        }
         if (document.body.classList.contains('fullscreen-mode') && !document.fullscreenElement) {
           this.setSimulatedFullscreen(false);
         }
