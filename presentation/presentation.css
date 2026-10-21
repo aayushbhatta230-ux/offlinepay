@@ -1505,11 +1505,11 @@ html, body {
   left: 50%;
   transform: translate(-50%, -50%);
   width: 94vw;
-  max-width: 1260px;
+  max-width: 1300px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 48px;
+  gap: clamp(32px, 4vw, 56px);
   pointer-events: auto;
   z-index: 20;
   animation: theaterFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -1517,10 +1517,100 @@ html, body {
 
 .problem-left-col {
   flex: 1;
-  max-width: 600px;
+  max-width: 640px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+}
+
+.problem-kicker-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.live-dot-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
+  animation: pulse-dot 1.2s infinite ease-in-out;
+  display: inline-block;
+}
+
+.problem-location-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  padding: 3px 12px;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.problem-stats-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 2px 0 6px 0;
+}
+
+.problem-stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 12px;
+  padding: 9px 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.stat-badge {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 900;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.stat-badge.red {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  border: 1px solid #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
+}
+
+.stat-badge.orange {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fde68a;
+  border: 1px solid #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
+}
+
+.stat-caption {
+  font-size: 11.5px;
+  color: #e2e8f0;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.bullet-heading {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
 }
 
 .problem-right-col {
@@ -1533,22 +1623,42 @@ html, body {
 
 .vertical-phone-kiosk {
   position: relative;
-  width: min(320px, 35vw);
+  width: min(340px, 36vw);
   aspect-ratio: 9 / 16;
-  max-height: min(540px, calc(100vh - 190px));
-  background: #020617;
-  border-radius: 36px;
+  max-height: min(580px, calc(100vh - 130px));
+  background: #090d16;
+  border-radius: 38px;
   padding: 10px;
-  border: 2px solid rgba(239, 68, 68, 0.55);
+  border: 2px solid rgba(239, 68, 68, 0.65);
   box-shadow: 
-    0 16px 45px rgba(0, 0, 0, 0.85),
-    0 0 25px rgba(239, 68, 68, 0.35);
+    0 20px 50px rgba(0, 0, 0, 0.9),
+    0 0 35px rgba(239, 68, 68, 0.4),
+    inset 0 0 12px rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: hidden;
   contain: paint;
   transform: translateZ(0);
+}
+
+.kiosk-speaker-notch {
+  width: 58px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 9999px;
+  margin-bottom: 5px;
+  flex-shrink: 0;
+}
+
+.kiosk-camera-lens {
+  width: 7px;
+  height: 7px;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  margin-bottom: 5px;
+  flex-shrink: 0;
 }
 
 .kiosk-notch {
@@ -1668,6 +1778,45 @@ html, body {
   pointer-events: none;
 }
 
+.kiosk-audio-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Animated Audio Equalizer */
+.audio-equalizer {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2.5px;
+  height: 14px;
+  padding: 2px;
+}
+
+.eq-bar {
+  width: 3px;
+  background: #34d399;
+  border-radius: 2px;
+  height: 4px;
+  animation: eq-bounce 0.8s ease-in-out infinite alternate;
+}
+
+.eq-bar:nth-child(1) { height: 6px; animation-delay: 0.1s; }
+.eq-bar:nth-child(2) { height: 13px; animation-delay: 0.25s; }
+.eq-bar:nth-child(3) { height: 8px; animation-delay: 0.4s; }
+.eq-bar:nth-child(4) { height: 14px; animation-delay: 0.15s; }
+
+@keyframes eq-bounce {
+  0% { height: 3px; }
+  100% { height: 14px; }
+}
+
+.audio-equalizer.muted .eq-bar {
+  animation: none !important;
+  height: 3px !important;
+  background: #ef4444 !important;
+}
+
 .kiosk-live-badge {
   display: inline-flex;
   align-items: center;
@@ -1743,25 +1892,64 @@ html, body {
 }
 
 .merchant-quote-card {
-  background: rgba(15, 23, 42, 0.85);
+  background: linear-gradient(135deg, rgba(23, 14, 24, 0.92), rgba(15, 23, 42, 0.94));
   border: 1px solid rgba(239, 68, 68, 0.4);
   border-left: 4px solid #ef4444;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6), 0 0 25px rgba(239, 68, 68, 0.15);
+}
+
+.quote-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quote-icon {
+  font-size: 26px;
+  line-height: 1;
+  color: #ef4444;
+  font-family: serif;
+  font-weight: 900;
+}
+
+.quote-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.quote-tag {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #fca5a5;
+  letter-spacing: 0.06em;
+}
+
+.quote-sub {
+  font-size: 11px;
+  color: #94a3b8;
 }
 
 .quote-nepali {
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 600;
-  color: #fecaca;
+  color: #ffffff;
   line-height: 1.5;
   font-style: italic;
+}
+
+.quote-translation {
+  font-size: 11.5px;
+  color: #cbd5e1;
+  line-height: 1.4;
 }
 
 .quote-author {
@@ -1847,9 +2035,9 @@ html, body {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Maximized & Fullscreen Display Consistency
-   Preserves identical layout, dimensions, typography, and positioning
-   between normal windowed view and maximized/fullscreen view.
+   Fullscreen Pitch Presentation Mode
+   Hides top HUD, bottom HUD, floating controls, and minor in-slide
+   buttons for a clean, immersive stage-ready presentation.
    ───────────────────────────────────────────────────────────── */
 
 :fullscreen,
@@ -1861,25 +2049,42 @@ body.fullscreen-mode {
   overflow: hidden;
 }
 
-/* Ensure Top and Bottom HUDs maintain permanent visibility, positioning, and styling */
+/* Remove Top HUD, Bottom HUD, and Floating Controls in Fullscreen */
 :fullscreen .top-hud,
 :-webkit-full-screen .top-hud,
 body.fullscreen-mode .top-hud {
-  display: flex !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  transform: none !important;
-  visibility: visible !important;
+  display: none !important;
 }
 
 :fullscreen .bottom-hud,
 :-webkit-full-screen .bottom-hud,
 body.fullscreen-mode .bottom-hud {
-  display: flex !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  transform: none !important;
-  visibility: visible !important;
+  display: none !important;
+}
+
+:fullscreen .floating-fs-bar,
+:-webkit-full-screen .floating-fs-bar,
+body.fullscreen-mode .floating-fs-bar {
+  display: none !important;
+}
+
+/* Remove minor in-slide helper & action buttons in Fullscreen */
+:fullscreen .kiosk-controls-row,
+:-webkit-full-screen .kiosk-controls-row,
+body.fullscreen-mode .kiosk-controls-row {
+  display: none !important;
+}
+
+:fullscreen .theater-controls-row,
+:-webkit-full-screen .theater-controls-row,
+body.fullscreen-mode .theater-controls-row {
+  display: none !important;
+}
+
+:fullscreen .slide-action-btn,
+:-webkit-full-screen .slide-action-btn,
+body.fullscreen-mode .slide-action-btn {
+  display: none !important;
 }
 
 

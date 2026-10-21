@@ -857,15 +857,15 @@ const SLIDES = [
   // ── Slide 1: The Problem (Live Ground Reality Video) ──────
   {
     id: 'live-problem',
-    kicker: 'Slide 1 • The Problem / Live Reality',
+    kicker: 'Slide 1 • Ground Reality Check',
     kickerType: 'danger',
     title: 'When the Network Dies, <span class="highlight-danger">Commerce Stops</span>',
-    subtitle: "Live merchant interview: Why 100% cloud-dependent wallets fail in Nepal",
+    subtitle: "Live merchant recording from Kathmandu: Why 100% cloud-dependent wallets fail",
     videoSrc: 'problem-live.mp4',
     bullets: [
-      { icon: '📡', text: 'Congested cellular towers, mountain valleys & concrete basements frequently cut off signals', glow: 'glow-danger' },
-      { icon: '⏳', text: 'Delayed counter queues: 30-second spinning timeouts create stranded, frustrated lines', glow: 'glow-danger' },
-      { icon: '💵', text: 'Vendors forced back into physical cash when digital checkout stalls and fails', glow: 'glow-danger' }
+      { icon: '📡', heading: 'Infrastructure Dead Zones', text: 'Congested cell towers, mountain valleys & concrete basements frequently cut off signals without warning.', glow: 'glow-danger' },
+      { icon: '⏳', heading: 'Endless Spinning Wheels', text: '30-second cloud timeout halts checkout, stranding customers and stalling counter lines.', glow: 'glow-danger' },
+      { icon: '💵', heading: 'Forced Cash Fallback', text: 'Vendors abandon digital checkout and demand cash—reversing cashless adoption.', glow: 'glow-danger' }
     ],
     prompter: {
       pitchScript: `"Good morning respected judges! Have you ever tried paying for tea, groceries, or a bus fare with your phone, only to watch the payment wheel spin endlessly because cellular data died? Before we talk technology, watch this 25-second ground recording from a Kathmandu merchant shop. When cellular signal drops, standard digital wallets hang and fail completely, queues stall, and merchants are forced right back into physical cash. This real-world breakdown is why we built OfflinePay."`,
@@ -2337,36 +2337,72 @@ class PresentationApp {
       viewport.innerHTML = `
         <div class="problem-split-container">
           <div class="problem-left-col">
-            <div class="slide-kicker ${data.kickerType || 'danger'}">${data.kicker}</div>
+            <div class="problem-kicker-row">
+              <div class="slide-kicker ${data.kickerType || 'danger'}">
+                <span class="live-dot-pulse"></span> ${data.kicker}
+              </div>
+              <div class="problem-location-badge">📍 Asan Bazaar, Kathmandu</div>
+            </div>
+            
             <h1 class="slide-title">${data.title}</h1>
+
+            <div class="problem-stats-row">
+              <div class="problem-stat-chip">
+                <span class="stat-badge red">1 IN 4</span>
+                <span class="stat-caption">Peak-hour payment timeouts in concrete shops & transit</span>
+              </div>
+              <div class="problem-stat-chip">
+                <span class="stat-badge orange">45s+</span>
+                <span class="stat-caption">Stalled queue delay while waiting for 3-way cloud timeout</span>
+              </div>
+            </div>
+
             <div class="bullets-stack">
               ${data.bullets.map(b => `
                 <div class="bullet-item ${b.glow || 'glow-danger'}">
                   <span class="bullet-icon">${b.icon}</span>
-                  <span class="bullet-text">${b.text}</span>
+                  <div class="bullet-content">
+                    ${b.heading ? `<div class="bullet-heading">${b.heading}</div>` : ''}
+                    <div class="bullet-text">${b.text}</div>
+                  </div>
                 </div>
               `).join('')}
             </div>
             
             <div class="merchant-quote-card">
-              <div class="quote-author">🎙️ LIVE MERCHANT TESTIMONY • KATHMANDU</div>
+              <div class="quote-header">
+                <span class="quote-icon">“</span>
+                <div class="quote-meta">
+                  <span class="quote-tag">LIVE MERCHANT TESTIMONY</span>
+                  <span class="quote-sub">Local Provisions & Meat Store • Kathmandu</span>
+                </div>
+              </div>
               <div class="quote-nepali">"Customer le scan garyo bhane network chaina bhanda payment fail hunchha... ani cash nai maagnu parcha."</div>
-              <div style="font-size: 11px; color: #94a3b8; line-height: 1.3;">("When customers scan and cellular signal drops, digital payment times out... forcing an awkward fallback to cash.")</div>
+              <div class="quote-translation">("When cellular data drops at checkout, digital checkout times out... forcing merchants and customers into an immediate retreat to paper cash.")</div>
             </div>
           </div>
 
           <div class="problem-right-col">
             <div class="vertical-phone-kiosk">
-              <div class="kiosk-notch"></div>
+              <div class="kiosk-speaker-notch"></div>
+              <div class="kiosk-camera-lens"></div>
               <div class="kiosk-screen">
                 <div class="kiosk-top-overlay">
                   <div class="kiosk-live-badge">
                     <span class="kiosk-pulse-red"></span>
                     <span>LIVE RECORDING</span>
                   </div>
-                  <button class="kiosk-sound-btn active" id="problem-sound-btn" onclick="event.stopPropagation(); presentation.toggleProblemVideoAudio()">
-                    🔊 <span id="problem-sound-state">Audio: ON</span>
-                  </button>
+                  <div class="kiosk-audio-indicator">
+                    <div class="audio-equalizer" id="kiosk-eq">
+                      <span class="eq-bar"></span>
+                      <span class="eq-bar"></span>
+                      <span class="eq-bar"></span>
+                      <span class="eq-bar"></span>
+                    </div>
+                    <button class="kiosk-sound-btn active" id="problem-sound-btn" onclick="event.stopPropagation(); presentation.toggleProblemVideoAudio()">
+                      🔊 <span id="problem-sound-state">Audio: ON</span>
+                    </button>
+                  </div>
                 </div>
                 <video id="problem-live-video" src="problem-live.mp4" playsinline preload="auto" onclick="presentation.toggleProblemVideoPlay()"></video>
                 <div class="kiosk-start-overlay hidden" id="problem-start-overlay" onclick="presentation.startProblemVideoWithSound()">
@@ -2661,6 +2697,7 @@ class PresentationApp {
     const overlay = document.getElementById('problem-start-overlay');
     const soundBtn = document.getElementById('problem-sound-btn');
     const soundState = document.getElementById('problem-sound-state');
+    const eq = document.getElementById('kiosk-eq');
     if (!vid) return;
 
     if (overlay) overlay.classList.add('hidden');
@@ -2671,10 +2708,12 @@ class PresentationApp {
     vid.play().then(() => {
       if (soundBtn) soundBtn.classList.add('active');
       if (soundState) soundState.textContent = 'Audio: ON 🔊';
+      if (eq) eq.classList.remove('muted');
       this.showToast('🎙️ Live Merchant Testimony: 100% Volume (Playing from Start)');
     }).catch(err => {
       console.warn('Playback error:', err);
       vid.muted = true;
+      if (eq) eq.classList.add('muted');
       vid.play().catch(() => {});
     });
   }
@@ -2682,6 +2721,7 @@ class PresentationApp {
   toggleProblemVideoPlay() {
     const vid = document.getElementById('problem-live-video');
     const overlay = document.getElementById('problem-start-overlay');
+    const eq = document.getElementById('kiosk-eq');
     if (!vid) return;
 
     if (overlay && !overlay.classList.contains('hidden')) {
@@ -2691,9 +2731,11 @@ class PresentationApp {
 
     if (vid.paused) {
       vid.play();
+      if (eq && !vid.muted) eq.classList.remove('muted');
       this.showToast('▶️ Playing Live Ground Recording');
     } else {
       vid.pause();
+      if (eq) eq.classList.add('muted');
       this.showToast('⏸️ Paused Live Ground Recording');
     }
   }
@@ -2703,6 +2745,7 @@ class PresentationApp {
     const btn = document.getElementById('problem-sound-btn');
     const stateSpan = document.getElementById('problem-sound-state');
     const overlay = document.getElementById('problem-start-overlay');
+    const eq = document.getElementById('kiosk-eq');
     if (!vid) return;
 
     vid.muted = !vid.muted;
@@ -2715,10 +2758,12 @@ class PresentationApp {
       if (overlay) overlay.classList.add('hidden');
       if (btn) btn.classList.add('active');
       if (stateSpan) stateSpan.textContent = 'Audio: ON 🔊';
+      if (eq) eq.classList.remove('muted');
       this.showToast('🎙️ Merchant Audio: UNMUTED (100% Volume)');
     } else {
       if (btn) btn.classList.remove('active');
       if (stateSpan) stateSpan.textContent = 'Audio: OFF 🔇';
+      if (eq) eq.classList.add('muted');
       this.showToast('🔇 Merchant Audio Muted');
     }
   }
@@ -2742,8 +2787,12 @@ class PresentationApp {
     vid.play().then(() => {
       if (soundBtn) soundBtn.classList.add('active');
       if (soundState) soundState.textContent = 'Audio: ON 🔊';
+      const eq = document.getElementById('kiosk-eq');
+      if (eq) eq.classList.remove('muted');
     }).catch(() => {
       vid.muted = true;
+      const eq = document.getElementById('kiosk-eq');
+      if (eq) eq.classList.add('muted');
       vid.play().catch(() => {});
     });
 
