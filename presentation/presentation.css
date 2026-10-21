@@ -76,7 +76,7 @@ html, body {
 
 /* Top Navigation Bar */
 .top-hud {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -84,7 +84,7 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 10;
+  z-index: 20;
   pointer-events: auto;
 }
 
@@ -493,7 +493,7 @@ html, body {
 
 /* Bottom Minimal Control HUD (Clean & Centered) */
 .bottom-hud {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
@@ -501,7 +501,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10;
+  z-index: 20;
   pointer-events: auto;
 }
 
@@ -1797,79 +1797,9 @@ html, body {
   }
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Floating Controls Cluster (Active only in Fullscreen)
-   ───────────────────────────────────────────────────────────── */
+/* Floating controls disabled: permanent top-hud handles all controls */
 .floating-fs-bar {
-  display: none;
-  position: fixed;
-  top: 16px;
-  right: 22px;
-  z-index: 9999;
-  align-items: center;
-  gap: 10px;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-:fullscreen .floating-fs-bar,
-:-webkit-full-screen .floating-fs-bar,
-body.fullscreen-mode .floating-fs-bar {
-  display: inline-flex;
-}
-
-.floating-fs-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: rgba(13, 20, 36, 0.68);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  color: #94a3b8;
-  padding: 6px 14px;
-  border-radius: 9999px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  opacity: 0.4;
-  transition: opacity 0.25s ease, background 0.25s ease, border-color 0.25s ease, transform 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-
-.floating-fs-btn:hover {
-  opacity: 1;
-  background: rgba(22, 32, 54, 0.95);
-  border-color: rgba(255, 255, 255, 0.5);
-  color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.7);
-}
-
-.floating-fs-btn.active {
-  opacity: 0.88;
-  background: rgba(16, 185, 129, 0.22);
-  border-color: #10b981;
-  color: #34d399;
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
-}
-
-.floating-fs-btn.active:hover {
-  opacity: 1;
-  background: rgba(16, 185, 129, 0.35);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
-}
-
-.floating-fs-btn.exit-btn .fs-exit-icon {
-  font-size: 13px;
-  font-weight: 800;
-  color: #ef4444;
-}
-
-.fs-btn-text {
-  font-size: 11.5px;
-  letter-spacing: 0.02em;
+  display: none !important;
 }
 
 /* Clap Recognition Pulse Animation */
@@ -1917,311 +1847,40 @@ body.fullscreen-mode .floating-fs-bar {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Fullscreen Presentation Mode
-   Completely removes HUD bars and expands layout dimensions
-   to fill the reclaimed vertical and horizontal viewport
+   Maximized & Fullscreen Display Consistency
+   Preserves identical layout, dimensions, typography, and positioning
+   between normal windowed view and maximized/fullscreen view.
    ───────────────────────────────────────────────────────────── */
 
+:fullscreen,
+:-webkit-full-screen,
+body.fullscreen-mode {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* Ensure Top and Bottom HUDs maintain permanent visibility, positioning, and styling */
 :fullscreen .top-hud,
 :-webkit-full-screen .top-hud,
 body.fullscreen-mode .top-hud {
-  display: none !important;
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: none !important;
+  visibility: visible !important;
 }
 
 :fullscreen .bottom-hud,
 :-webkit-full-screen .bottom-hud,
 body.fullscreen-mode .bottom-hud {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  transform: translateY(16px);
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: none !important;
+  visibility: visible !important;
 }
 
-:fullscreen .bottom-hud:hover,
-:-webkit-full-screen .bottom-hud:hover,
-body.fullscreen-mode .bottom-hud:hover,
-:fullscreen .bottom-hud.hover-active,
-:-webkit-full-screen .bottom-hud.hover-active,
-body.fullscreen-mode .bottom-hud.hover-active {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-/* ── Slide 1: Live Problem Statement Fullscreen Expansion ── */
-:fullscreen .problem-split-container,
-:-webkit-full-screen .problem-split-container,
-body.fullscreen-mode .problem-split-container {
-  width: 95vw;
-  max-width: 1540px;
-  gap: clamp(40px, 4.5vw, 72px);
-}
-
-:fullscreen .problem-left-col,
-:-webkit-full-screen .problem-left-col,
-body.fullscreen-mode .problem-left-col {
-  max-width: 760px;
-  gap: 20px;
-}
-
-:fullscreen .problem-left-col .slide-kicker,
-:-webkit-full-screen .problem-left-col .slide-kicker,
-body.fullscreen-mode .problem-left-col .slide-kicker {
-  font-size: 13px;
-  padding: 5px 16px;
-}
-
-:fullscreen .problem-left-col .slide-title,
-:-webkit-full-screen .problem-left-col .slide-title,
-body.fullscreen-mode .problem-left-col .slide-title {
-  font-size: clamp(2.4rem, 3.8vw, 3.8rem);
-  line-height: 1.12;
-  margin-bottom: 4px;
-}
-
-:fullscreen .problem-left-col .bullets-stack,
-:-webkit-full-screen .problem-left-col .bullets-stack,
-body.fullscreen-mode .problem-left-col .bullets-stack {
-  gap: 14px;
-}
-
-:fullscreen .problem-left-col .bullet-item,
-:-webkit-full-screen .problem-left-col .bullet-item,
-body.fullscreen-mode .problem-left-col .bullet-item {
-  padding: 16px 20px;
-  gap: 16px;
-  border-radius: 16px;
-}
-
-:fullscreen .problem-left-col .bullet-icon,
-:-webkit-full-screen .problem-left-col .bullet-icon,
-body.fullscreen-mode .problem-left-col .bullet-icon {
-  font-size: 22px;
-}
-
-:fullscreen .problem-left-col .bullet-text,
-:-webkit-full-screen .problem-left-col .bullet-text,
-body.fullscreen-mode .problem-left-col .bullet-text {
-  font-size: 15.5px;
-  line-height: 1.5;
-}
-
-:fullscreen .merchant-quote-card,
-:-webkit-full-screen .merchant-quote-card,
-body.fullscreen-mode .merchant-quote-card {
-  padding: 18px 22px;
-  border-radius: 16px;
-  gap: 10px;
-}
-
-:fullscreen .quote-nepali,
-:-webkit-full-screen .quote-nepali,
-body.fullscreen-mode .quote-nepali {
-  font-size: 15.5px;
-  line-height: 1.55;
-}
-
-:fullscreen .quote-author,
-:-webkit-full-screen .quote-author,
-body.fullscreen-mode .quote-author {
-  font-size: 12px;
-}
-
-/* Expand Vertical Phone Kiosk */
-:fullscreen .vertical-phone-kiosk,
-:-webkit-full-screen .vertical-phone-kiosk,
-body.fullscreen-mode .vertical-phone-kiosk {
-  width: min(420px, 38vw);
-  max-height: min(780px, calc(100vh - 60px));
-  border-radius: 42px;
-  padding: 12px;
-  border-width: 2.5px;
-  box-shadow: 
-    0 22px 60px rgba(0, 0, 0, 0.9),
-    0 0 35px rgba(239, 68, 68, 0.45);
-}
-
-:fullscreen .kiosk-screen,
-:-webkit-full-screen .kiosk-screen,
-body.fullscreen-mode .kiosk-screen {
-  border-radius: 32px;
-}
-
-:fullscreen .kiosk-top-overlay,
-:-webkit-full-screen .kiosk-top-overlay,
-body.fullscreen-mode .kiosk-top-overlay {
-  top: 14px;
-  left: 14px;
-  right: 14px;
-}
-
-:fullscreen .kiosk-live-badge,
-:-webkit-full-screen .kiosk-live-badge,
-body.fullscreen-mode .kiosk-live-badge {
-  font-size: 12px;
-  padding: 5px 14px;
-}
-
-:fullscreen .kiosk-sound-btn,
-:-webkit-full-screen .kiosk-sound-btn,
-body.fullscreen-mode .kiosk-sound-btn {
-  font-size: 12.5px;
-  padding: 5px 16px;
-}
-
-:fullscreen .kiosk-controls-row,
-:-webkit-full-screen .kiosk-controls-row,
-body.fullscreen-mode .kiosk-controls-row {
-  gap: 16px;
-  margin-top: 6px;
-}
-
-:fullscreen .kiosk-replay-btn,
-:-webkit-full-screen .kiosk-replay-btn,
-body.fullscreen-mode .kiosk-replay-btn,
-:fullscreen .kiosk-proceed-btn,
-:-webkit-full-screen .kiosk-proceed-btn,
-body.fullscreen-mode .kiosk-proceed-btn {
-  padding: 10px 22px;
-  font-size: 13.5px;
-  border-radius: 14px;
-}
-
-/* ── Slide 2: Solution Architecture Theater Fullscreen Expansion ── */
-:fullscreen .theater-fullscreen-container,
-:-webkit-full-screen .theater-fullscreen-container,
-body.fullscreen-mode .theater-fullscreen-container {
-  width: 96vw;
-  max-width: 1540px;
-  padding: 24px 30px 24px 30px;
-  border-radius: 28px;
-  gap: 16px;
-}
-
-:fullscreen .theater-badge,
-:-webkit-full-screen .theater-badge,
-body.fullscreen-mode .theater-badge {
-  font-size: 12.5px;
-}
-
-:fullscreen .theater-main-title,
-:-webkit-full-screen .theater-main-title,
-body.fullscreen-mode .theater-main-title {
-  font-size: 1.85rem;
-}
-
-:fullscreen .theater-sound-pill,
-:-webkit-full-screen .theater-sound-pill,
-body.fullscreen-mode .theater-sound-pill {
-  font-size: 13.5px;
-  padding: 8px 20px;
-  border-radius: 16px;
-}
-
-:fullscreen .theater-screen-frame,
-:-webkit-full-screen .theater-screen-frame,
-body.fullscreen-mode .theater-screen-frame {
-  max-height: calc(100vh - 140px);
-  border-radius: 22px;
-}
-
-:fullscreen .theater-flow-chips,
-:-webkit-full-screen .theater-flow-chips,
-body.fullscreen-mode .theater-flow-chips {
-  gap: 12px;
-}
-
-:fullscreen .flow-chip,
-:-webkit-full-screen .flow-chip,
-body.fullscreen-mode .flow-chip {
-  font-size: 13.5px;
-  padding: 6px 16px;
-}
-
-:fullscreen .theater-btn,
-:-webkit-full-screen .theater-btn,
-body.fullscreen-mode .theater-btn {
-  font-size: 14px;
-  padding: 10px 24px;
-  border-radius: 14px;
-}
-
-/* ── Slides 3-7: Standard 3D Slides Fullscreen Expansion ── */
-:fullscreen .slide,
-:-webkit-full-screen .slide,
-body.fullscreen-mode .slide {
-  width: min(650px, 46vw);
-  max-width: 650px;
-  left: max(50px, 6.5vw);
-}
-
-:fullscreen .slide .slide-kicker,
-:-webkit-full-screen .slide .slide-kicker,
-body.fullscreen-mode .slide .slide-kicker {
-  font-size: 12.5px;
-  padding: 5px 16px;
-}
-
-:fullscreen .slide .slide-title,
-:-webkit-full-screen .slide .slide-title,
-body.fullscreen-mode .slide .slide-title {
-  font-size: clamp(2.35rem, 3.5vw, 3.35rem);
-  line-height: 1.12;
-  margin-bottom: 12px;
-}
-
-:fullscreen .slide .slide-subtitle,
-:-webkit-full-screen .slide .slide-subtitle,
-body.fullscreen-mode .slide .slide-subtitle {
-  font-size: 16px;
-  line-height: 1.55;
-  margin-bottom: 24px;
-}
-
-:fullscreen .slide .bullet-item,
-:-webkit-full-screen .slide .bullet-item,
-body.fullscreen-mode .slide .bullet-item {
-  padding: 16px 20px;
-  gap: 16px;
-  border-radius: 16px;
-}
-
-:fullscreen .slide .bullet-icon,
-:-webkit-full-screen .slide .bullet-icon,
-body.fullscreen-mode .slide .bullet-icon {
-  font-size: 22px;
-}
-
-:fullscreen .slide .bullet-text,
-:-webkit-full-screen .slide .bullet-text,
-body.fullscreen-mode .slide .bullet-text {
-  font-size: 15.5px;
-  line-height: 1.5;
-}
-
-:fullscreen .slide .bullets-stack,
-:-webkit-full-screen .slide .bullets-stack,
-body.fullscreen-mode .slide .bullets-stack {
-  gap: 14px;
-}
-
-@media (max-width: 950px) {
-  :fullscreen .problem-split-container,
-  :-webkit-full-screen .problem-split-container,
-  body.fullscreen-mode .problem-split-container {
-    flex-direction: column;
-    overflow-y: auto;
-    padding-top: 30px;
-    padding-bottom: 60px;
-    height: 100%;
-    justify-content: flex-start;
-  }
-  :fullscreen .vertical-phone-kiosk,
-  :-webkit-full-screen .vertical-phone-kiosk,
-  body.fullscreen-mode .vertical-phone-kiosk {
-    max-height: 480px;
-    width: min(290px, 80vw);
-  }
-}
 
 

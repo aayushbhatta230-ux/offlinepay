@@ -2971,11 +2971,12 @@ class PresentationApp {
     if (fsBtn) {
       fsBtn.textContent = isFS ? '🗗' : '⛶';
       fsBtn.title = isFS ? 'Exit Fullscreen [F]' : 'Toggle Fullscreen [F]';
+      fsBtn.classList.toggle('active', isFS);
     }
 
     const floatingBar = document.getElementById('floating-fs-bar');
     if (floatingBar) {
-      floatingBar.style.display = isFS ? 'inline-flex' : 'none';
+      floatingBar.style.display = 'none';
     }
 
     this.updateResponsiveLayout();
@@ -3371,30 +3372,30 @@ class PresentationApp {
         grp.scale.set(scaleVal, scaleVal, scaleVal);
       });
     } else if (w < 1100) {
-      // Compact landscape (1024x768, laptops, netbooks) - Keep medium-sized and prominent!
+      // Compact landscape (1024x768, laptops, netbooks) - Keep medium-sized and prominent
       const posX = 1.62;
-      this.targetCamera = { x: 0, y: 0.08, z: isFS ? 5.60 : 5.85 };
+      this.targetCamera = { x: 0, y: 0.08, z: 5.85 };
       this.targetLookAt = { x: 0, y: 0, z: 0 };
 
       this.slideObjects.forEach((grp, idx) => {
         const slideData = SLIDES[idx];
         const slideId = slideData ? slideData.id : null;
-        const scaleVal = this.getSlideScale(slideId) * (isFS ? 1.05 : 0.94);
+        const scaleVal = this.getSlideScale(slideId) * 0.94;
         const yOff = this.getSlideYOffset(slideId);
         grp.position.set(posX, yOff, 0);
         grp.scale.set(scaleVal, scaleVal, scaleVal);
       });
     } else {
       // Standard desktop / wide screen:
-      // In fullscreen, camera is positioned closer and 3D objects are scaled up by 1.12x to fill stage
-      const posX = isFS ? 1.76 : 1.74;
-      this.targetCamera = { x: 0, y: 0.08, z: isFS ? 5.50 : 5.75 };
+      // Maintain exact same layout, camera positioning and 3D scale whether windowed or maximized/fullscreen
+      const posX = 1.74;
+      this.targetCamera = { x: 0, y: 0.08, z: 5.75 };
       this.targetLookAt = { x: 0, y: 0, z: 0 };
 
       this.slideObjects.forEach((grp, idx) => {
         const slideData = SLIDES[idx];
         const slideId = slideData ? slideData.id : null;
-        const scaleVal = this.getSlideScale(slideId) * (isFS ? 1.12 : 1.0);
+        const scaleVal = this.getSlideScale(slideId) * 1.0;
         const yOff = this.getSlideYOffset(slideId);
         grp.position.set(posX, yOff, 0);
         grp.scale.set(scaleVal, scaleVal, scaleVal);
