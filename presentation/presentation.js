@@ -857,15 +857,33 @@ const SLIDES = [
   // ── Slide 1: The Problem (Live Ground Reality Video) ──────
   {
     id: 'live-problem',
-    kicker: 'Slide 1 • Ground Reality Check',
+    kicker: 'Slide 1 • The Problem',
     kickerType: 'danger',
     title: 'When the Network Dies, <span class="highlight-danger">Commerce Stops</span>',
-    subtitle: "Live merchant recording from Kathmandu: Why 100% cloud-dependent wallets fail",
+    subtitle: 'Why standard digital wallets fail for everyday micro-transactions across Nepal',
     videoSrc: 'problem-live.mp4',
     bullets: [
-      { icon: '📡', heading: 'Infrastructure Dead Zones', text: 'Congested cell towers, mountain valleys & concrete basements frequently cut off signals without warning.', glow: 'glow-danger' },
-      { icon: '⏳', heading: 'Endless Spinning Wheels', text: '30-second cloud timeout halts checkout, stranding customers and stalling counter lines.', glow: 'glow-danger' },
-      { icon: '💵', heading: 'Forced Cash Fallback', text: 'Vendors abandon digital checkout and demand cash—reversing cashless adoption.', glow: 'glow-danger' }
+      {
+        icon: '📡',
+        title: 'Physical Signal Dead Zones',
+        tag: 'Zero Reception',
+        theme: 'danger',
+        text: 'Concrete basements, highway valleys & metal public buses constantly block cellular signals—cutting off internet access right when consumers need to pay.'
+      },
+      {
+        icon: '⏳',
+        title: 'The 3-Way Cloud Handshake Freeze',
+        tag: 'Queue Bottleneck',
+        theme: 'warning',
+        text: 'Traditional wallets require uninterrupted Buyer ↔ Cloud ↔ Merchant communication. A single network drop triggers 30-second spinning timeouts that strand buyers.'
+      },
+      {
+        icon: '💵',
+        title: 'Forced Cash Fallback',
+        tag: 'Adoption Halted',
+        theme: 'amber',
+        text: 'Frustrated by stalled checkout lines and disputed pending debits, merchants reject digital QR scans and demand paper cash—reversing cashless adoption.'
+      }
     ],
     prompter: {
       pitchScript: `"Good morning respected judges! Have you ever tried paying for tea, groceries, or a bus fare with your phone, only to watch the payment wheel spin endlessly because cellular data died? Before we talk technology, watch this 25-second ground recording from a Kathmandu merchant shop. When cellular signal drops, standard digital wallets hang and fail completely, queues stall, and merchants are forced right back into physical cash. This real-world breakdown is why we built OfflinePay."`,
@@ -2333,52 +2351,32 @@ class PresentationApp {
     const viewport = document.getElementById('slide-viewport');
 
     if (data.id === 'live-problem') {
-      // Slide 1: Live Problem Statement - Vertical Video Theater Split
+      // Slide 1: Live Problem Statement - Attractive Keynote Bullet Cards + Video Kiosk
       viewport.innerHTML = `
         <div class="problem-split-container">
           <div class="problem-left-col">
-            <div class="problem-kicker-row">
-              <div class="slide-kicker ${data.kickerType || 'danger'}">
-                <span class="live-dot-pulse"></span> ${data.kicker}
-              </div>
-              <div class="problem-location-badge">📍 Asan Bazaar, Kathmandu</div>
+            <div class="slide-kicker ${data.kickerType || 'danger'}">
+              <span class="live-dot-pulse"></span> ${data.kicker}
             </div>
             
             <h1 class="slide-title">${data.title}</h1>
+            <p class="slide-subtitle">${data.subtitle}</p>
 
-            <div class="problem-stats-row">
-              <div class="problem-stat-chip">
-                <span class="stat-badge red">1 IN 4</span>
-                <span class="stat-caption">Peak-hour payment timeouts in concrete shops & transit</span>
-              </div>
-              <div class="problem-stat-chip">
-                <span class="stat-badge orange">45s+</span>
-                <span class="stat-caption">Stalled queue delay while waiting for 3-way cloud timeout</span>
-              </div>
-            </div>
-
-            <div class="bullets-stack">
-              ${data.bullets.map(b => `
-                <div class="bullet-item ${b.glow || 'glow-danger'}">
-                  <span class="bullet-icon">${b.icon}</span>
-                  <div class="bullet-content">
-                    ${b.heading ? `<div class="bullet-heading">${b.heading}</div>` : ''}
-                    <div class="bullet-text">${b.text}</div>
+            <div class="problem-bullets-stack">
+              ${data.bullets.map((b, idx) => `
+                <div class="problem-bullet-card ${b.theme || 'danger'}" style="animation-delay: ${0.08 + idx * 0.12}s">
+                  <div class="pbullet-icon-box ${b.theme || 'danger'}">
+                    <span class="pbullet-icon">${b.icon}</span>
+                  </div>
+                  <div class="pbullet-body">
+                    <div class="pbullet-header">
+                      <span class="pbullet-title">${b.title}</span>
+                      <span class="pbullet-tag ${b.theme || 'danger'}">${b.tag}</span>
+                    </div>
+                    <p class="pbullet-desc">${b.text}</p>
                   </div>
                 </div>
               `).join('')}
-            </div>
-            
-            <div class="merchant-quote-card">
-              <div class="quote-header">
-                <span class="quote-icon">“</span>
-                <div class="quote-meta">
-                  <span class="quote-tag">LIVE MERCHANT TESTIMONY</span>
-                  <span class="quote-sub">Local Provisions & Meat Store • Kathmandu</span>
-                </div>
-              </div>
-              <div class="quote-nepali">"Customer le scan garyo bhane network chaina bhanda payment fail hunchha... ani cash nai maagnu parcha."</div>
-              <div class="quote-translation">("When cellular data drops at checkout, digital checkout times out... forcing merchants and customers into an immediate retreat to paper cash.")</div>
             </div>
           </div>
 
